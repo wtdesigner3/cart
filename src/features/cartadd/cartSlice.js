@@ -15,20 +15,20 @@ export const addCartItem = createAsyncThunk(
     const existingItem = cart.items.find((item) => item.id === product.id)
 
     if (existingItem) {
-      const response = await axios.patch(`${API_BASE}/cart/${existingItem.id}`, {
+      const response = await axios.patch(`${API_BASE}api/cart/${existingItem.id}`, {
         quantity: (existingItem.quantity ?? 1) + 1,
       })
       return response.data
     }
 
     const payload = { ...product, quantity: 1, id: product.id }
-    const response = await axios.post(`${API_BASE}/cart`, payload)
+    const response = await axios.post(`${API_BASE}api/cart`, payload)
     return response.data
   },
 )
 
 export const removeCartItem = createAsyncThunk('cart/removeCartItem', async (id) => {
-  await axios.delete(`${API_BASE}/cart/${id}`)
+  await axios.delete(`${API_BASE}api/cart/${id}`)
   return id
 })
 
@@ -36,16 +36,16 @@ export const updateCartItemQuantity = createAsyncThunk(
   'cart/updateCartItemQuantity',
   async ({ id, quantity }) => {
     if (quantity <= 0) {
-      await axios.delete(`${API_BASE}/cart/${id}`)
+      await axios.delete(`${API_BASE}api/cart/${id}`)
       return { id, deleted: true }
     }
-    const response = await axios.patch(`${API_BASE}/cart/${id}`, { quantity })
+    const response = await axios.patch(`${API_BASE}api/cart/${id}`, { quantity })
     return { item: response.data, deleted: false }
   },
 )
 
 export const clearCart = createAsyncThunk('cart/clearCart', async () => {
-  await axios.delete(`${API_BASE}/cart`)
+  await axios.delete(`${API_BASE}api/cart`)
   return []
 })
 
