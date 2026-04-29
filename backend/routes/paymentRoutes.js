@@ -50,8 +50,8 @@ router.post('/create-checkout-session', async (req, res, next) => {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `http://localhost:5173/payment?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: 'http://localhost:5173/checkout',
+      success_url: `https://cart-pied-tau.vercel.app/payment?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: 'https://cart-pied-tau.vercel.app/checkout',
       customer_email: email,
       metadata: {
         orderId: createdOrder._id.toString(),
