@@ -13,15 +13,7 @@ export default function Checkout() {
   const [shipping, setShipping] = useState(shippingInfo)
   const [selectedAddressId, setSelectedAddressId] = useState('')
   const [showAddAddress, setShowAddAddress] = useState(false)
-  const [newAddress, setNewAddress] = useState({
-    fullName: '',
-    email: '',
-    address: '',
-    city: '',
-    country: '',
-    postalCode: '',
-    isDefault: false,
-  })
+  const [saveAsDefault, setSaveAsDefault] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -29,6 +21,12 @@ export default function Checkout() {
       dispatch(fetchAddresses())
     }
   }, [token, dispatch])
+
+  useEffect(() => {
+    if (token && addresses.length === 0) {
+      setShowAddAddress(true)
+    }
+  }, [token, addresses.length])
 
   const total = useMemo(
     () => cartItems.reduce((sum, item) => sum + item.price * (item.quantity ?? 1), 0),
@@ -55,28 +53,16 @@ export default function Checkout() {
     }
   }
 
-  const handleNewAddressChange = (event) => {
-    const { name, value, type, checked } = event.target
-    setNewAddress((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
-  }
-
   const handleAddAddress = async () => {
     try {
       const addressData = {
-        ...newAddress,
-        isDefault: newAddress.isDefault || false,
+        ...shipping,
+        isDefault: saveAsDefault,
       }
       await dispatch(addAddress(addressData)).unwrap()
-      setNewAddress({
-        fullName: '',
-        email: '',
-        address: '',
-        city: '',
-        country: '',
-        postalCode: '',
-        isDefault: false,
-      })
+      setSaveAsDefault(false)
       setShowAddAddress(false)
+      toast.success('Address saved successfully')
     } catch (error) {
       toast.error('Failed to add address')
     }
@@ -236,15 +222,19 @@ export default function Checkout() {
                 </label>
               </div>
 
-              {showAddAddress && (
+              {(showAddAddress || addresses.length === 0) && (
                 <div className="border-t pt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-md font-medium text-gray-900">Save this address for future use</h3>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                    <div>
+                      <h3 className="text-md font-medium text-gray-900">Save this address for future use</h3>
+                      <p className="text-sm text-gray-500">You can reuse this address for later orders.</p>
+                    </div>
                     <label className="flex items-center">
                       <input
                         type="checkbox"
                         name="isDefault"
-                        onChange={handleNewAddressChange}
+                        checked={saveAsDefault}
+                        onChange={(event) => setSaveAsDefault(event.target.checked)}
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <span className="ml-2 text-sm text-gray-600">Set as default</span>
