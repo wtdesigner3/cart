@@ -12,6 +12,8 @@ import paymentRoutes from './routes/paymentRoutes.js'
 import authRoutes from './routes/authRoutes.js'
 import categoryRoutes from './routes/categoryRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
+import bannerRoutes from './routes/bannerRoutes.js'
+import carouselRoutes from './routes/carouselRoutes.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 
 connectDB()
@@ -29,6 +31,8 @@ app.use('/uploads', express.static(uploadsPath))
 app.use('/api/products', productRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/banners', bannerRoutes)
+app.use('/api/carousel', carouselRoutes)
 app.use('/api/cart', cartRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/payments', paymentRoutes)

@@ -6,7 +6,7 @@ import { protect, admin } from '../middleware/authMiddleware.js'
 const router = express.Router()
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(process.cwd(), 'backend', 'uploads')),
+  destination: (req, file, cb) => cb(null, path.join(process.cwd(), 'uploads')),
   filename: (req, file, cb) => {
     const extension = path.extname(file.originalname)
     const name = `${Date.now()}-${file.fieldname}${extension}`

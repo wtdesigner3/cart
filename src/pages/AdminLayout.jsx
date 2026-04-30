@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { ChevronDown, Home, Package, ShoppingCart, Users, ImageIcon, Zap } from 'lucide-react'
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -8,64 +10,151 @@ function classNames(...classes) {
 export default function AdminLayout() {
   const userInfo = useSelector((state) => state.user.userInfo)
   const location = useLocation()
+  const [expandedMenu, setExpandedMenu] = useState(null)
 
-  const breadcrumbLabel = {
-    '/admin': 'Overview',
-    '/admin/products': 'Products',
-    '/admin/orders': 'Orders',
-    '/admin/users': 'Users',
-  }[location.pathname] || 'Overview'
+  const menuItems = [
+    { label: 'Overview', to: '/admin', icon: Home },
+    {
+      label: 'Products',
+      icon: Package,
+      submenu: [
+        { label: 'View Products', to: '/admin/products' },
+        { label: 'Manage Categories', to: '/admin/categories' },
+      ],
+    },
+    {
+      label: 'Content',
+      icon: ImageIcon,
+      submenu: [
+        { label: 'Banners', to: '/admin/banners' },
+        { label: 'Carousel', to: '/admin/carousel' },
+      ],
+    },
+    { label: 'Orders', to: '/admin/orders', icon: ShoppingCart },
+    { label: 'Users', to: '/admin/users', icon: Users },
+  ]
+
+  const getBreadcrumbLabel = () => {
+    const breadcrumbMap = {
+      '/admin': 'Overview',
+      '/admin/products': 'Products',
+      '/admin/categories': 'Categories',
+      '/admin/banners': 'Banners',
+      '/admin/carousel': 'Product Carousel',
+      '/admin/orders': 'Orders',
+      '/admin/users': 'Users',
+    }
+    return breadcrumbMap[location.pathname] || 'Dashboard'
+  }
+
+  const toggleMenu = (label) => {
+    setExpandedMenu(expandedMenu === label ? null : label)
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto flex min-h-screen max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <aside className="hidden w-72 shrink-0 flex-col rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm lg:flex">
-          <div className="mb-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-indigo-600">Admin panel</p>
-            <h1 className="mt-3 text-2xl font-semibold text-slate-900">Manage your store</h1>
-            <p className="mt-2 text-sm text-slate-500">Signed in as {userInfo?.name || 'Admin'}</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="flex min-h-screen">
+        {/* Sidebar */}
+        <aside className="fixed left-0 top-0 h-screen w-80 border-r border-slate-700 bg-slate-800/50 p-6 backdrop-blur-xl">
+          <div className="mb-12">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
+                <Zap className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-white">StoreHub</h1>
+            </div>
+            <p className="text-sm text-slate-400">Admin Dashboard</p>
+            <p className="mt-2 text-xs text-slate-500">Logged in as {userInfo?.name || 'Admin'}</p>
           </div>
 
-          <nav className="space-y-3 text-sm font-semibold">
-            {[
-              { label: 'Overview', to: '/admin' },
-              { label: 'Products', to: '/admin/products' },
-              { label: 'Orders', to: '/admin/orders' },
-              { label: 'Users', to: '/admin/users' },
-            ].map((item) => (
-              <NavLink key={item.to} to={item.to} end={item.to === '/admin'}>
-                {({ isActive }) => (
-                  <div
+          <nav className="space-y-2">
+            {menuItems.map((item) => (
+              <div key={item.label}>
+                {item.submenu ? (
+                  <button
+                    onClick={() => toggleMenu(item.label)}
                     className={classNames(
-                      isActive
-                        ? 'bg-indigo-600 text-white shadow-lg'
-                        : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900',
-                      'flex items-center gap-3 rounded-2xl px-4 py-3 transition',
+                      expandedMenu === item.label
+                        ? 'bg-slate-700/60 text-white'
+                        : 'text-slate-300 hover:bg-slate-700/40 hover:text-white',
+                      'w-full flex items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
                     )}
                   >
-                    <span
+                    <div className="flex items-center gap-3">
+                      <item.icon className="h-5 w-5" />
+                      {item.label}
+                    </div>
+                    <ChevronDown
                       className={classNames(
-                        'h-10 w-1 rounded-full transition-colors',
-                        isActive ? 'bg-white' : 'bg-transparent',
+                        'h-4 w-4 transition-transform',
+                        expandedMenu === item.label ? 'rotate-180' : '',
                       )}
                     />
-                    {item.label}
+                  </button>
+                ) : (
+                  <NavLink to={item.to} end={item.to === '/admin'}>
+                    {({ isActive }) => (
+                      <div
+                        className={classNames(
+                          isActive
+                            ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20'
+                            : 'text-slate-300 hover:bg-slate-700/40 hover:text-white',
+                          'flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all',
+                        )}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                      </div>
+                    )}
+                  </NavLink>
+                )}
+
+                {/* Submenu */}
+                {item.submenu && expandedMenu === item.label && (
+                  <div className="mt-1 space-y-1 pl-2">
+                    {item.submenu.map((subitem) => (
+                      <NavLink key={subitem.to} to={subitem.to} end>
+                        {({ isActive }) => (
+                          <div
+                            className={classNames(
+                              isActive
+                                ? 'bg-indigo-600/20 text-indigo-300 border-l-2 border-indigo-500'
+                                : 'text-slate-400 hover:bg-slate-700/30 hover:text-slate-300 border-l-2 border-transparent',
+                              'flex items-center gap-3 rounded-r-lg px-4 py-2 text-sm font-medium transition-colors',
+                            )}
+                          >
+                            <div className="h-1.5 w-1.5 rounded-full bg-current" />
+                            {subitem.label}
+                          </div>
+                        )}
+                      </NavLink>
+                    ))}
                   </div>
                 )}
-              </NavLink>
+              </div>
             ))}
           </nav>
         </aside>
 
-        <main className="min-w-0 flex-1 rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Admin / {breadcrumbLabel}</p>
-              <h2 className="text-2xl font-semibold text-slate-900">{breadcrumbLabel}</h2>
+        {/* Main Content */}
+        <main className="ml-80 flex-1 overflow-auto">
+          <div className="sticky top-0 z-40 border-b border-slate-700/50 bg-slate-800/50 px-8 py-4 backdrop-blur-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Dashboard</p>
+                <h2 className="mt-2 text-2xl font-bold text-white">{getBreadcrumbLabel()}</h2>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-semibold">
+                  {userInfo?.name?.charAt(0).toUpperCase()}
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-slate-500">Signed in as {userInfo?.name || 'Admin'}</p>
           </div>
-          <Outlet />
+
+          <div className="p-8">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

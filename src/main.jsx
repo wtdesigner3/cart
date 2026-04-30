@@ -22,9 +22,13 @@ import OrderHistory from './pages/OrderHistory.jsx'
 import AdminLayout from './pages/AdminLayout.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import AdminProducts from './pages/AdminProducts.jsx'
+import AdminCategories from './pages/AdminCategories.jsx'
+import AdminBanners from './pages/AdminBanners.jsx'
+import AdminCarousel from './pages/AdminCarousel.jsx'
 import AdminOrders from './pages/AdminOrders.jsx'
 import AdminUsers from './pages/AdminUsers.jsx'
 import CategoryPage from './pages/CategoryPage.jsx'
+import ProductsPage from './pages/ProductsPage.jsx'
 import { Provider } from 'react-redux'
 import { store } from './app/store.js'
 import Cart from './components/cart/Cart.jsx'
@@ -85,6 +89,10 @@ const router = createBrowserRouter([
         element: <CategoryPage />,
       },
       {
+        path: 'products',
+        element: <ProductsPage />,
+      },
+      {
         path: 'user',
         element: <ProtectedRoute><UserDashboard /></ProtectedRoute>,
         children: [
@@ -117,6 +125,18 @@ const router = createBrowserRouter([
           {
             path: 'products',
             element: <AdminProducts />,
+          },
+          {
+            path: 'categories',
+            element: <AdminCategories />,
+          },
+          {
+            path: 'banners',
+            element: <AdminBanners />,
+          },
+          {
+            path: 'carousel',
+            element: <AdminCarousel />,
           },
           {
             path: 'orders',

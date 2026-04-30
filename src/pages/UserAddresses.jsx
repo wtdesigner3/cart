@@ -1,18 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
+import { addAddress, deleteAddress, fetchAddresses, updateAddress } from '../features/user/userSlice'
 
 export default function UserAddresses() {
-  const [addresses, setAddresses] = useState([
-    // Sample addresses for demo - in real app, fetch from API
-    {
-      id: 1,
-      fullName: 'John Doe',
-      address: '123 Main St',
-      city: 'New York',
-      postalCode: '10001',
-      country: 'USA',
-    },
-  ])
+  const dispatch = useDispatch()
+  const { addresses = [], token, userInfo } = useSelector((state) => state.user)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState({
@@ -38,32 +31,50 @@ export default function UserAddresses() {
     setEditingId(null)
   }
 
+  useEffect(() => {
+    if (token && addresses.length === 0) {
+      dispatch(fetchAddresses())
+    }
+  }, [dispatch, token, addresses.length])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (editingId) {
-      // Edit existing
-      setAddresses(addresses.map(addr =>
-        addr.id === editingId ? { ...form, id: editingId } : addr
-      ))
-      toast.success('Address updated successfully')
-    } else {
-      // Add new
-      setAddresses([...addresses, { ...form, id: Date.now() }])
-      toast.success('Address added successfully')
+    try {
+      const addressData = {
+        ...form,
+        email: userInfo?.email || '',
+      }
+
+      if (editingId) {
+        await dispatch(updateAddress({ id: editingId, addressData })).unwrap()
+      } else {
+        await dispatch(addAddress(addressData)).unwrap()
+      }
+      setShowForm(false)
+      resetForm()
+    } catch (error) {
+      toast.error(error.message || 'Unable to save address')
     }
-    setShowForm(false)
-    resetForm()
   }
 
   const handleEdit = (addr) => {
-    setForm(addr)
-    setEditingId(addr.id)
+    setForm({
+      fullName: addr.fullName || '',
+      address: addr.address || '',
+      city: addr.city || '',
+      postalCode: addr.postalCode || '',
+      country: addr.country || '',
+    })
+    setEditingId(addr._id)
     setShowForm(true)
   }
 
-  const handleDelete = (id) => {
-    setAddresses(addresses.filter(addr => addr.id !== id))
-    toast.info('Address removed')
+  const handleDelete = async (id) => {
+    try {
+      await dispatch(deleteAddress(id)).unwrap()
+    } catch (error) {
+      toast.error(error.message || 'Unable to remove address')
+    }
   }
 
   const handleCancel = () => {
@@ -182,7 +193,7 @@ export default function UserAddresses() {
           </div>
         ) : (
           addresses.map((addr) => (
-            <div key={addr.id} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div key={addr._id || addr.id} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-gray-900">{addr.fullName}</p>
@@ -198,7 +209,7 @@ export default function UserAddresses() {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(addr.id)}
+                    onClick={() => handleDelete(addr._id || addr.id)}
                     className="rounded-2xl bg-red-600 px-3 py-1 text-sm font-semibold text-white hover:bg-red-700"
                   >
                     Remove
