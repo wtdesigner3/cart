@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { toast } from 'react-toastify'
 import axios from 'axios'
 
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
@@ -27,6 +28,7 @@ const productSlice = createSlice({
       .addCase(fetchProduct.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.error.message
+        toast.error(action.error.message || 'Unable to load products.')
       })
   },
 })

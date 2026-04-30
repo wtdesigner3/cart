@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import Loader from '../components/Loader.jsx'
 import { fetchOrders } from '../features/order/orderSlice.js'
 
 export default function OrderHistory() {
@@ -17,7 +18,7 @@ export default function OrderHistory() {
         <p className="mt-2 text-sm text-gray-600">Review your completed purchases and order details.</p>
       </div>
 
-      {status === 'loading' && <p className="text-sm text-gray-500">Loading orders...</p>}
+      {status === 'loading' && <Loader message="Fetching your order history..." />}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {orders?.length ? (

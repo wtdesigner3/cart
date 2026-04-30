@@ -1,14 +1,34 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { setShippingInfo } from '../features/order/orderSlice'
+import { fetchAddresses, addAddress } from '../features/user/userSlice'
+import { toast } from 'react-toastify'
 
 export default function Checkout() {
   const dispatch = useDispatch()
   const cartItems = useSelector((state) => state.cart.items)
   const shippingInfo = useSelector((state) => state.order.shippingInfo)
+  const { addresses, token } = useSelector((state) => state.user)
   const [shipping, setShipping] = useState(shippingInfo)
+  const [selectedAddressId, setSelectedAddressId] = useState('')
+  const [showAddAddress, setShowAddAddress] = useState(false)
+  const [newAddress, setNewAddress] = useState({
+    fullName: '',
+    email: '',
+    address: '',
+    city: '',
+    country: '',
+    postalCode: '',
+    isDefault: false,
+  })
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchAddresses())
+    }
+  }, [token, dispatch])
 
   const total = useMemo(
     () => cartItems.reduce((sum, item) => sum + item.price * (item.quantity ?? 1), 0),
@@ -18,6 +38,48 @@ export default function Checkout() {
   const handleChange = (event) => {
     const { name, value } = event.target
     setShipping((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleAddressSelect = (addressId) => {
+    const selectedAddress = addresses.find(addr => addr._id === addressId)
+    if (selectedAddress) {
+      setShipping({
+        fullName: selectedAddress.fullName,
+        email: selectedAddress.email,
+        address: selectedAddress.address,
+        city: selectedAddress.city,
+        country: selectedAddress.country,
+        postalCode: selectedAddress.postalCode,
+      })
+      setSelectedAddressId(addressId)
+    }
+  }
+
+  const handleNewAddressChange = (event) => {
+    const { name, value, type, checked } = event.target
+    setNewAddress((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
+  }
+
+  const handleAddAddress = async () => {
+    try {
+      const addressData = {
+        ...newAddress,
+        isDefault: newAddress.isDefault || false,
+      }
+      await dispatch(addAddress(addressData)).unwrap()
+      setNewAddress({
+        fullName: '',
+        email: '',
+        address: '',
+        city: '',
+        country: '',
+        postalCode: '',
+        isDefault: false,
+      })
+      setShowAddAddress(false)
+    } catch (error) {
+      toast.error('Failed to add address')
+    }
   }
 
   const handleSubmit = (event) => {
@@ -58,73 +120,147 @@ export default function Checkout() {
             <p className="mt-1 text-sm text-gray-500">Provide the delivery details for your order.</p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className="text-sm font-medium text-gray-700">Full name</span>
-              <input
-                name="fullName"
-                value={shipping.fullName}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
-              />
-            </label>
-            <label className="block">
-              <span className="text-sm font-medium text-gray-700">Email address</span>
-              <input
-                type="email"
-                name="email"
-                value={shipping.email}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
-              />
-            </label>
-          </div>
+          {token && addresses.length > 0 && (
+            <div>
+              <h3 className="text-md font-medium text-gray-900 mb-3">Select a saved address</h3>
+              <div className="space-y-3">
+                {addresses.map((address) => (
+                  <div
+                    key={address._id}
+                    className={`border rounded-2xl p-4 cursor-pointer transition-colors ${
+                      selectedAddressId === address._id
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => handleAddressSelect(address._id)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-medium text-gray-900">{address.fullName}</p>
+                        <p className="text-sm text-gray-600">{address.email}</p>
+                        <p className="text-sm text-gray-600">{address.address}</p>
+                        <p className="text-sm text-gray-600">{address.city}, {address.country} {address.postalCode}</p>
+                      </div>
+                      {address.isDefault && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Default
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddAddress(!showAddAddress)}
+                className="mt-3 text-indigo-600 hover:text-indigo-500 text-sm font-medium"
+              >
+                {showAddAddress ? 'Cancel' : '+ Add new address'}
+              </button>
+            </div>
+          )}
 
-          <label className="block">
-            <span className="text-sm font-medium text-gray-700">Street address</span>
-            <input
-              name="address"
-              value={shipping.address}
-              onChange={handleChange}
-              required
-              className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
-            />
-          </label>
+          {(!token || addresses.length === 0 || showAddAddress) && (
+            <>
+              {token && addresses.length > 0 && (
+                <div className="border-t pt-6">
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Or enter new address</h3>
+                </div>
+              )}
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            <label className="block">
-              <span className="text-sm font-medium text-gray-700">City</span>
-              <input
-                name="city"
-                value={shipping.city}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
-              />
-            </label>
-            <label className="block">
-              <span className="text-sm font-medium text-gray-700">Country</span>
-              <input
-                name="country"
-                value={shipping.country}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
-              />
-            </label>
-            <label className="block">
-              <span className="text-sm font-medium text-gray-700">Postal code</span>
-              <input
-                name="postalCode"
-                value={shipping.postalCode}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
-              />
-            </label>
-          </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block">
+                  <span className="text-sm font-medium text-gray-700">Full name</span>
+                  <input
+                    name="fullName"
+                    value={shipping.fullName}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-sm font-medium text-gray-700">Email address</span>
+                  <input
+                    type="email"
+                    name="email"
+                    value={shipping.email}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
+                  />
+                </label>
+              </div>
+
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">Street address</span>
+                <input
+                  name="address"
+                  value={shipping.address}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <label className="block">
+                  <span className="text-sm font-medium text-gray-700">City</span>
+                  <input
+                    name="city"
+                    value={shipping.city}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-sm font-medium text-gray-700">Country</span>
+                  <input
+                    name="country"
+                    value={shipping.country}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-sm font-medium text-gray-700">Postal code</span>
+                  <input
+                    name="postalCode"
+                    value={shipping.postalCode}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
+                  />
+                </label>
+              </div>
+
+              {showAddAddress && (
+                <div className="border-t pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-md font-medium text-gray-900">Save this address for future use</h3>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="isDefault"
+                        onChange={handleNewAddressChange}
+                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-600">Set as default</span>
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddAddress}
+                    className="w-full rounded-2xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
+                  >
+                    Save Address
+                  </button>
+                </div>
+              )}
+            </>
+          )}
 
           <button
             type="submit"

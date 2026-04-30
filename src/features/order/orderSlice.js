@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { toast } from 'react-toastify'
 import api, { authHeaders } from '../../utils/api.js'
 
 export const createOrder = createAsyncThunk('order/createOrder', async (orderData, thunkAPI) => {
@@ -47,10 +48,12 @@ const orderSlice = createSlice({
       .addCase(createOrder.fulfilled, (state, action) => {
         state.status = 'succeeded'
         state.currentOrder = action.payload
+        toast.success('Order placed successfully.')
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.error.message
+        toast.error(action.error.message || 'Unable to place order.')
       })
       .addCase(fetchOrders.pending, (state) => {
         state.status = 'loading'
@@ -62,6 +65,7 @@ const orderSlice = createSlice({
       .addCase(fetchOrders.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.error.message
+        toast.error(action.error.message || 'Failed to load order history.')
       })
   },
 })

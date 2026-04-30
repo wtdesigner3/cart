@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { toast } from 'react-toastify'
 import api, { authHeaders } from '../utils/api.js'
 
 const statusOptions = ['pending', 'processing', 'shipped', 'completed']
@@ -7,7 +8,6 @@ const statusOptions = ['pending', 'processing', 'shipped', 'completed']
 export default function AdminOrders() {
   const token = useSelector((state) => state.user.token)
   const [orders, setOrders] = useState([])
-  const [message, setMessage] = useState({ type: '', text: '' })
 
   const headers = authHeaders(token)
 
@@ -22,18 +22,17 @@ export default function AdminOrders() {
       const response = await api.get('/orders', headers)
       setOrders(response.data)
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || error.message })
+      toast.error(error.response?.data?.message || error.message)
     }
   }
 
   const updateStatus = async (orderId, status) => {
-    setMessage({ type: '', text: '' })
     try {
       await api.put(`/orders/${orderId}`, { status }, headers)
-      setMessage({ type: 'success', text: 'Order status updated.' })
+      toast.success('Order status updated.')
       fetchOrders()
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || error.message })
+      toast.error(error.response?.data?.message || error.message)
     }
   }
 
@@ -46,12 +45,6 @@ export default function AdminOrders() {
             <p className="text-sm text-slate-500">Review and update current orders.</p>
           </div>
         </div>
-
-        {message.text && (
-          <div className={`mt-5 rounded-2xl px-4 py-3 text-sm ${message.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
-            {message.text}
-          </div>
-        )}
       </div>
 
       <div className="space-y-4">

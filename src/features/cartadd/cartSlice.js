@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { toast } from 'react-toastify'
 import axios from 'axios'
 
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
@@ -83,13 +84,16 @@ const cartSlice = createSlice({
 
         if (existing) {
           existing.quantity = addedItem.quantity
+          toast.success('Updated quantity in your cart.')
         } else {
           state.items.push(addedItem)
+          toast.success('Product added to cart!')
         }
       })
       .addCase(addCartItem.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.error.message
+        toast.error(action.error.message || 'Failed to add product to cart.')
       })
       .addCase(removeCartItem.pending, (state) => {
         state.status = 'loading'
@@ -97,10 +101,12 @@ const cartSlice = createSlice({
       .addCase(removeCartItem.fulfilled, (state, action) => {
         state.status = 'succeeded'
         state.items = state.items.filter((item) => item.id !== action.payload)
+        toast.info('Item removed from cart.')
       })
       .addCase(removeCartItem.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.error.message
+        toast.error(action.error.message || 'Failed to remove item from cart.')
       })
       .addCase(updateCartItemQuantity.pending, (state) => {
         state.status = 'loading'
@@ -109,6 +115,7 @@ const cartSlice = createSlice({
         state.status = 'succeeded'
         if (action.payload.deleted) {
           state.items = state.items.filter((item) => item.id !== action.payload.id)
+          toast.info('Item removed from cart.')
           return
         }
         const updatedItem = action.payload.item
@@ -116,10 +123,12 @@ const cartSlice = createSlice({
         if (existing) {
           existing.quantity = updatedItem.quantity ?? existing.quantity
         }
+        toast.success('Cart updated successfully.')
       })
       .addCase(updateCartItemQuantity.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.error.message
+        toast.error(action.error.message || 'Failed to update cart item.')
       })
       .addCase(clearCart.pending, (state) => {
         state.status = 'loading'
@@ -127,10 +136,12 @@ const cartSlice = createSlice({
       .addCase(clearCart.fulfilled, (state) => {
         state.status = 'succeeded'
         state.items = []
+        toast.info('Cart cleared successfully.')
       })
       .addCase(clearCart.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.error.message
+        toast.error(action.error.message || 'Failed to clear cart.')
       })
   },
 })

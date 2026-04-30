@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { clearCart } from '../features/cartadd/cartSlice'
 import api from '../utils/api.js'
 
@@ -37,8 +38,12 @@ export default function Payment() {
       const response = await api.get(`/payments/confirm-session?session_id=${sessionId}`)
       await dispatch(clearCart())
       setStatus({ loading: false, success: 'Payment completed successfully. Your order is confirmed.', error: '' })
+      toast.success('Payment completed successfully. Your order is confirmed.')
+      navigate(`/order-success?order_id=${response.data._id}`)
     } catch (error) {
-      setStatus({ loading: false, success: '', error: error.response?.data?.message || error.message })
+      const message = error.response?.data?.message || error.message
+      setStatus({ loading: false, success: '', error: message })
+      toast.error(message)
     }
   }
 
@@ -65,9 +70,12 @@ export default function Payment() {
       }
 
       const response = await api.post('/payments/create-checkout-session', orderPayload)
+      toast.info('Redirecting to Stripe checkout…', { autoClose: 2000 })
       window.location.href = response.data.url
     } catch (error) {
-      setStatus({ loading: false, success: '', error: error.response?.data?.message || error.message })
+      const message = error.response?.data?.message || error.message
+      setStatus({ loading: false, success: '', error: message })
+      toast.error(message)
     }
   }
 
@@ -124,7 +132,17 @@ export default function Payment() {
             disabled={status.loading}
             className="w-full rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {status.loading ? 'Redirecting to Stripe…' : `Pay $${total.toFixed(2)} with Stripe`}
+            {status.loading ? (
+              <span className="inline-flex items-center gap-2">
+                <svg className="h-4 w-4 animate-spin text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" strokeOpacity="0.2" />
+                  <path d="M22 12a10 10 0 0 1-10 10" />
+                </svg>
+                Redirecting to Stripe…
+              </span>
+            ) : (
+              `Pay $${total.toFixed(2)} with Stripe`
+            )}
           </button>
         </form>
 

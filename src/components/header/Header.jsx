@@ -59,32 +59,35 @@ export default function Header() {
                   </NavLink>
                 ))}
                 {userInfo ? (
-                  <>
-                    <NavLink
-                      to="/orders"
-                      className={({ isActive }) =>
-                        classNames(
-                          isActive ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white',
-                          'rounded-md px-3 py-2 text-sm font-medium',
-                        )
-                      }
-                    >
-                      Orders
-                    </NavLink>
-                    {userInfo.isAdmin && (
-                      <NavLink
-                        to="/admin"
-                        className={({ isActive }) =>
-                          classNames(
-                            isActive ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white',
-                            'rounded-md px-3 py-2 text-sm font-medium',
-                          )
-                        }
-                      >
-                        Admin
-                      </NavLink>
-                    )}
-                  </>
+                  <Menu as="div" className="relative">
+                    <MenuButton className="inline-flex items-center rounded-full bg-white/10 px-3 py-2 text-sm font-medium text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      Account
+                    </MenuButton>
+                    <MenuItems className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-gray-800 py-1 outline outline-white/10">
+                      <MenuItem>
+                        <Link to="/user" className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5">
+                          My Account
+                        </Link>
+                      </MenuItem>
+                      <MenuItem>
+                        <Link to="/orders" className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5">
+                          My Orders
+                        </Link>
+                      </MenuItem>
+                      {userInfo.isAdmin && (
+                        <MenuItem>
+                          <Link to="/admin" className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5">
+                            Admin dashboard
+                          </Link>
+                        </MenuItem>
+                      )}
+                      <MenuItem>
+                        <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/5">
+                          Sign out
+                        </button>
+                      </MenuItem>
+                    </MenuItems>
+                  </Menu>
                 ) : (
                   <NavLink
                     to="/login"
@@ -172,6 +175,40 @@ export default function Header() {
               {item.name}
             </DisclosureButton>
           ))}
+          {userInfo && (
+            <>
+              <DisclosureButton
+                as={Link}
+                to="/user"
+                className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-white/5 hover:text-white"
+              >
+                My Account
+              </DisclosureButton>
+              <DisclosureButton
+                as={Link}
+                to="/orders"
+                className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-white/5 hover:text-white"
+              >
+                My Orders
+              </DisclosureButton>
+              {userInfo.isAdmin && (
+                <DisclosureButton
+                  as={Link}
+                  to="/admin"
+                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-white/5 hover:text-white"
+                >
+                  Admin dashboard
+                </DisclosureButton>
+              )}
+              <DisclosureButton
+                as="button"
+                onClick={handleLogout}
+                className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-gray-300 hover:bg-white/5 hover:text-white"
+              >
+                Sign out
+              </DisclosureButton>
+            </>
+          )}
         </div>
       </DisclosurePanel>
     </Disclosure>

@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react'
 import Header from '../header/Header'
+import Footer from '../Footer'
 import { Outlet } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { fetchCart } from '../../features/cartadd/cartSlice'
+import ScrollToTop from '../ScrollToTop'
 
 export default function Layout() {
   const dispatch = useDispatch()
@@ -13,8 +15,12 @@ export default function Layout() {
 
   return (
     <>
+      <ScrollToTop />
       <Header />
-      <Outlet />
+      <main className="min-h-screen">
+        <Outlet />
+      </main>
+      <Footer />
     </>
   )
 }

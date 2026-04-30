@@ -6,7 +6,14 @@ const router = express.Router()
 
 router.get('/', async (req, res, next) => {
   try {
-    const products = await Product.find({})
+    const { category, limit = 0, skip = 0, search } = req.query
+    const query = {}
+    if (category) query.category = category
+    if (search) query.title = { $regex: search, $options: 'i' }
+
+    const products = await Product.find(query)
+      .skip(Number(skip))
+      .limit(Number(limit))
     res.json(products)
   } catch (error) {
     next(error)

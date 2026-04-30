@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { login } from '../features/user/userSlice.js'
 
 export default function Login() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const location = useLocation()
   const { userInfo, status, error } = useSelector((state) => state.user)
   const [form, setForm] = useState({ email: '', password: '' })
 
+  const from = location.state?.from?.pathname || '/'
+
   useEffect(() => {
     if (userInfo) {
-      navigate('/')
+      navigate(from, { replace: true })
     }
-  }, [userInfo, navigate])
+  }, [userInfo, navigate, from])
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -22,7 +25,7 @@ export default function Login() {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    dispatch(login(form))
+    dispatch(login({ ...form, redirectFrom: from }))
   }
 
   return (
@@ -56,12 +59,27 @@ export default function Login() {
               className="mt-1 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-indigo-500"
             />
           </label>
+          <div className="flex items-center justify-between text-sm text-indigo-600 hover:text-indigo-700">
+            <Link to="/forgot-password" className="font-medium">
+              Forgot password?
+            </Link>
+          </div>
           <button
             type="submit"
             disabled={status === 'loading'}
             className="w-full rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            {status === 'loading' ? 'Signing in...' : 'Sign in'}
+            {status === 'loading' ? (
+              <span className="inline-flex items-center gap-2">
+                <svg className="h-4 w-4 animate-spin text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" strokeOpacity="0.2" />
+                  <path d="M22 12a10 10 0 0 1-10 10" />
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              'Sign in'
+            )}
           </button>
         </form>
 

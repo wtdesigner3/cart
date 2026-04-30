@@ -2,10 +2,12 @@ import { useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { removeCartItem, updateCartItemQuantity } from '../../features/cartadd/cartSlice'
 import { Link } from 'react-router-dom'
+import Loader from '../Loader.jsx'
 
 export default function Cart() {
   const dispatch = useDispatch()
   const cartItems = useSelector((state) => state.cart.items)
+  const cartStatus = useSelector((state) => state.cart.status)
 
   const totalItems = useMemo(
     () => cartItems.reduce((sum, item) => sum + (item.quantity ?? 1), 0),
@@ -16,6 +18,10 @@ export default function Cart() {
     () => cartItems.reduce((sum, item) => sum + item.price * (item.quantity ?? 1), 0),
     [cartItems],
   )
+
+  if (cartStatus === 'loading' && !cartItems.length) {
+    return <Loader message="Loading cart..." />
+  }
 
   if (!cartItems.length) {
     return (

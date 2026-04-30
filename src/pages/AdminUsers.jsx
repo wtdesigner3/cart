@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { toast } from 'react-toastify'
 import api, { authHeaders } from '../utils/api.js'
 
 export default function AdminUsers() {
   const token = useSelector((state) => state.user.token)
   const userInfo = useSelector((state) => state.user.userInfo)
   const [users, setUsers] = useState([])
-  const [message, setMessage] = useState({ type: '', text: '' })
 
   const headers = authHeaders(token)
 
@@ -21,29 +21,27 @@ export default function AdminUsers() {
       const response = await api.get('/auth/users', headers)
       setUsers(response.data)
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || error.message })
+      toast.error(error.response?.data?.message || error.message)
     }
   }
 
   const toggleAdmin = async (userId, isAdmin) => {
-    setMessage({ type: '', text: '' })
     try {
       await api.put(`/auth/users/${userId}`, { isAdmin }, headers)
-      setMessage({ type: 'success', text: 'User role updated.' })
+      toast.success('User role updated.')
       fetchUsers()
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || error.message })
+      toast.error(error.response?.data?.message || error.message)
     }
   }
 
   const deleteUser = async (userId) => {
-    setMessage({ type: '', text: '' })
     try {
       await api.delete(`/auth/users/${userId}`, headers)
-      setMessage({ type: 'success', text: 'User deleted.' })
+      toast.success('User deleted.')
       fetchUsers()
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || error.message })
+      toast.error(error.response?.data?.message || error.message)
     }
   }
 
@@ -56,12 +54,6 @@ export default function AdminUsers() {
             <p className="text-sm text-slate-500">Manage users and admin permissions.</p>
           </div>
         </div>
-
-        {message.text && (
-          <div className={`mt-5 rounded-2xl px-4 py-3 text-sm ${message.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
-            {message.text}
-          </div>
-        )}
       </div>
 
       <div className="overflow-x-auto rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
