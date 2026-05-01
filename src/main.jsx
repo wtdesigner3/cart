@@ -157,15 +157,14 @@ createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <RouterProvider router={router} />
       <ToastContainer
-        position="top-right"
+        position="bottom-right"
         autoClose={3000}
         hideProgressBar={false}
-        newestOnTop={true}
+        newestOnTop={false}
         pauseOnFocusLoss
         draggable
         pauseOnHover
         theme="colored"
-        style={{ top: '72px' }}
       />
     </Provider>
   </StrictMode>,

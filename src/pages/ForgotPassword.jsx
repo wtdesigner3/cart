@@ -7,6 +7,7 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState('')
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -14,9 +15,10 @@ export default function ForgotPassword() {
     try {
       const response = await api.post('/auth/forgot-password', { email })
       setSent(true)
+      setPreviewUrl(response.data.previewUrl || '')
       toast.success(response.data.message)
       if (response.data.previewUrl) {
-        toast.info('Email preview available in the backend console or test URL.')
+        toast.info('Email preview is available after sending the reset code.')
       }
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
@@ -32,8 +34,17 @@ export default function ForgotPassword() {
         <p className="mt-2 text-sm text-gray-500">Enter your email and we will send a reset code.</p>
 
         {sent ? (
-          <div className="mt-6 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">
-            Instructions sent. Check your inbox, then use the reset page to create a new password.
+          <div className="mt-6 space-y-3 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">
+            <p>Instructions sent. Check your inbox, then use the reset page to create a new password.</p>
+            <p>If you are testing locally, open the backend console or use the preview URL shown in the toast.</p>
+            {previewUrl ? (
+              <p>
+                Preview link:{' '}
+                <a href={previewUrl} target="_blank" rel="noreferrer" className="font-semibold text-indigo-700 hover:text-indigo-900">
+                  Open email preview
+                </a>
+              </p>
+            ) : null}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
