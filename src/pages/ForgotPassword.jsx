@@ -21,7 +21,11 @@ export default function ForgotPassword() {
         toast.info('Email preview is available after sending the reset code.')
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message)
+      const message =
+        error.code === 'ECONNABORTED'
+          ? 'Request timed out. Please try again or check your network.'
+          : error.response?.data?.message || error.message
+      toast.error(message)
     } finally {
       setLoading(false)
     }

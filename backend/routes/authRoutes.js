@@ -29,7 +29,13 @@ const buildTransporter = async () => {
     })
   }
 
-  const testAccount = await nodemailer.createTestAccount()
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Email provider not configured. Set EMAIL_HOST, EMAIL_USER, and EMAIL_PASS.')
+  }
+
+  const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Test email creation timed out')), ms))
+  const testAccount = await Promise.race([nodemailer.createTestAccount(), timeout(8000)])
+
   return nodemailer.createTransport({
     host: testAccount.smtp.host,
     port: testAccount.smtp.port,
