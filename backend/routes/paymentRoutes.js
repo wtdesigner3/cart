@@ -46,12 +46,13 @@ router.post('/create-checkout-session', async (req, res, next) => {
       quantity: item.quantity ?? 1,
     }))
 
+    const clientUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173'
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `https://cart-pied-tau.vercel.app/payment?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: 'https://cart-pied-tau.vercel.app/checkout',
+      success_url: `${clientUrl.replace(/\/$/, '')}/payment?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${clientUrl.replace(/\/$/, '')}/checkout`,
       customer_email: email,
       metadata: {
         orderId: createdOrder._id.toString(),

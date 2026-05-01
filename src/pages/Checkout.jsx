@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { setShippingInfo } from '../features/order/orderSlice'
 import { fetchAddresses, addAddress } from '../features/user/userSlice'
+import { getImageUrl } from '../utils/api.js'
 import { toast } from 'react-toastify'
 
 export default function Checkout() {
@@ -268,7 +269,7 @@ export default function Checkout() {
           <div className="space-y-4">
             {cartItems.map((item) => (
               <div key={item.id} className="flex items-center gap-4 rounded-3xl border border-gray-200 bg-gray-50 p-4">
-                <img src={item.thumbnail} alt={item.title} className="h-20 w-20 rounded-2xl object-cover" />
+                <img src={getImageUrl(item.thumbnail)} alt={item.title} className="h-20 w-20 rounded-2xl object-cover" />
                 <div className="flex-1">
                   <h3 className="text-sm font-semibold text-gray-900">{item.title}</h3>
                   <p className="mt-1 text-sm text-gray-500">{item.quantity ?? 1} × ${item.price.toFixed(2)}</p>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
 import { Trash2, Edit2, Plus } from 'lucide-react'
-import api, { authHeaders } from '../utils/api.js'
+import api, { authHeaders, getImageUrl } from '../utils/api.js'
 
 const initialBannerForm = {
   title: '',
@@ -244,7 +244,7 @@ export default function AdminBanners() {
               <div className="rounded-lg border border-slate-600 p-4">
                 <p className="text-sm font-semibold text-slate-300 mb-2">Preview</p>
                 <img
-                  src={form.image}
+                  src={getImageUrl(form.image)}
                   alt="Preview"
                   className="h-40 w-full rounded-lg object-cover"
                 />
@@ -299,7 +299,7 @@ export default function AdminBanners() {
                   <div className="grid gap-4 md:grid-cols-[200px_1fr_100px]">
                     {banner.image && (
                       <img
-                        src={banner.image}
+                        src={getImageUrl(banner.image)}
                         alt={banner.title}
                         className="h-32 w-full rounded-lg object-cover bg-slate-800 md:w-40"
                       />

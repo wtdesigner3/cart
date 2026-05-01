@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
 import { Trash2, Edit2, Plus, GripVertical } from 'lucide-react'
-import api, { authHeaders } from '../utils/api.js'
+import api, { authHeaders, getImageUrl } from '../utils/api.js'
 
 const initialCarouselItemForm = {
   title: '',
@@ -251,7 +251,7 @@ export default function AdminCarousel() {
               <div className="rounded-lg border border-slate-600 p-4">
                 <p className="text-sm font-semibold text-slate-300 mb-2">Preview</p>
                 <img
-                  src={form.image}
+                  src={getImageUrl(form.image)}
                   alt="Preview"
                   className="h-40 w-full rounded-lg object-cover"
                 />
@@ -308,7 +308,7 @@ export default function AdminCarousel() {
                       <GripVertical className="h-5 w-5 text-slate-500 flex-shrink-0 md:hidden" />
                       {item.image && (
                         <img
-                          src={item.image}
+                          src={getImageUrl(item.image)}
                           alt={item.title}
                           className="h-32 w-full rounded-lg object-cover bg-slate-800 md:w-40"
                         />

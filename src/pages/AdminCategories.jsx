@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
 import { Trash2, Edit2, Plus } from 'lucide-react'
-import api, { authHeaders } from '../utils/api.js'
+import api, { authHeaders, getImageUrl } from '../utils/api.js'
 
 const initialCategoryForm = {
   title: '',
@@ -274,7 +274,7 @@ export default function AdminCategories() {
                 <div className="mt-5 rounded-[28px] border border-slate-200 bg-slate-50 p-5">
                   {category.image ? (
                     <div className="overflow-hidden rounded-3xl">
-                      <img src={category.image} alt={category.title} className="h-40 w-full object-cover" />
+                      <img src={getImageUrl(category.image)} alt={category.title} className="h-40 w-full object-cover" />
                     </div>
                   ) : (
                     <div className="h-40 rounded-3xl bg-slate-200" />

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { fetchProduct } from '../../features/cart/productSlice'
 import { addCartItem } from '../../features/cartadd/cartSlice'
+import { getImageUrl } from '../../utils/api.js'
 import Loader from '../Loader.jsx'
 
 export default function Product() {
@@ -42,7 +43,7 @@ export default function Product() {
               <Link to={`/product/${product.id}`} className="block overflow-hidden rounded-t-lg bg-gray-100">
                 <img
                   alt={product.title}
-                  src={product.thumbnail}
+                  src={getImageUrl(product.thumbnail)}
                   className="aspect-square w-full object-cover transition duration-300 group-hover:scale-105"
                 />
               </Link>

@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { addCartItem } from '../features/cartadd/cartSlice'
-import api from '../utils/api.js'
+import api, { getImageUrl } from '../utils/api.js'
 import Loader from '../components/Loader.jsx'
 
 export default function ProductDetail() {
@@ -95,7 +95,7 @@ export default function ProductDetail() {
             <div className="space-y-4">
               <div className="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50">
                 <img
-                  src={product.thumbnail}
+                  src={getImageUrl(product.thumbnail)}
                   alt={product.title}
                   className="h-full w-full object-cover"
                 />
@@ -217,7 +217,7 @@ export default function ProductDetail() {
                 to={`/product/${item.id}`}
                 className="group overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
               >
-                <img src={item.thumbnail} alt={item.title} className="h-56 w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
+                <img src={getImageUrl(item.thumbnail)} alt={item.title} className="h-56 w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
                 <div className="p-4">
                   <p className="text-xs uppercase tracking-[0.24em] text-indigo-600">{item.category}</p>
                   <h3 className="mt-3 text-sm font-semibold text-slate-900">{item.title}</h3>

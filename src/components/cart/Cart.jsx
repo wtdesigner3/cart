@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { removeCartItem, updateCartItemQuantity } from '../../features/cartadd/cartSlice'
 import { Link } from 'react-router-dom'
+import { getImageUrl } from '../../utils/api.js'
 import Loader from '../Loader.jsx'
 
 export default function Cart() {
@@ -60,7 +61,7 @@ export default function Cart() {
         {cartItems.map((item) => (
           <div key={item.id} className="grid gap-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:grid-cols-[1.5fr_1fr] lg:grid-cols-[1.7fr_0.8fr_0.8fr]">
             <div className="flex items-start gap-4">
-              <img src={item.thumbnail} alt={item.title} className="h-28 w-28 rounded-2xl object-cover" />
+              <img src={getImageUrl(item.thumbnail)} alt={item.title} className="h-28 w-28 rounded-2xl object-cover" />
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">{item.title}</h2>
                 <p className="mt-2 text-sm text-gray-500">{item.category}</p>

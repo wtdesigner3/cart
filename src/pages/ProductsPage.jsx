@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import api from '../utils/api.js'
+import { Link, useLocation } from 'react-router-dom'
+import api, { getImageUrl } from '../utils/api.js'
 import Loader from '../components/Loader.jsx'
 
 export default function ProductsPage() {
@@ -8,6 +8,7 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState([])
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
+  const location = useLocation()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [sortOrder, setSortOrder] = useState('newest')
@@ -33,6 +34,12 @@ export default function ProductsPage() {
 
     loadProducts()
   }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const query = params.get('search') || ''
+    setSearchTerm(query)
+  }, [location.search])
 
   const filteredProducts = useMemo(() => {
     const numericMin = minPrice ? Number(minPrice) : null
@@ -87,7 +94,7 @@ export default function ProductsPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <aside className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <aside className="sticky top-4 h-fit space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
             <p className="mt-1 text-sm text-slate-500">Refine results instantly.</p>
@@ -183,20 +190,23 @@ export default function ProductsPage() {
                 <Link
                   to={`/product/${product.id || product._id}`}
                   key={product.id || product._id}
-                  className="group overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                  className="group overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-indigo-200"
                 >
-                  <div className="aspect-[4/3] overflow-hidden bg-slate-100">
-                    <img src={product.thumbnail} alt={product.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                  <div className="aspect-[4/3] overflow-hidden bg-slate-100 relative">
+                    <img src={getImageUrl(product.thumbnail)} alt={product.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
-                  <div className="space-y-3 p-5">
+                  <div className="space-y-2 p-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.25em] text-indigo-600">{product.category}</p>
-                      <h3 className="mt-2 text-lg font-semibold text-slate-900">{product.title}</h3>
+                      <p className="text-xs uppercase tracking-[0.25em] text-indigo-600 font-medium">{product.category}</p>
+                      <h3 className="mt-1 text-lg font-bold text-slate-900 leading-tight">{product.title}</h3>
                     </div>
-                    <p className="text-sm leading-6 text-slate-500 line-clamp-3">{product.description}</p>
-                    <div className="flex items-center justify-between gap-3 pt-3">
-                      <span className="text-xl font-bold text-slate-900">${product.price?.toFixed(2)}</span>
-                      <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-indigo-700">Buy now</span>
+                    <p className="text-sm leading-5 text-slate-600 line-clamp-2">{product.description}</p>
+                    <div className="flex items-center justify-between gap-3 pt-2">
+                      <span className="text-xl font-extrabold text-slate-900">${product.price?.toFixed(2)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-indigo-700">Buy now</span>
+                      </div>
                     </div>
                   </div>
                 </Link>

@@ -4,7 +4,7 @@ import { toast } from 'react-toastify'
 import { CKEditor } from '@ckeditor/ckeditor5-react'
 import * as CKEditorBuild from '@ckeditor/ckeditor5-build-classic'
 import { Trash2, Edit2, Plus, Search } from 'lucide-react'
-import api, { authHeaders } from '../utils/api.js'
+import api, { authHeaders, getImageUrl } from '../utils/api.js'
 
 const ClassicEditor = CKEditorBuild.default || CKEditorBuild
 
@@ -340,7 +340,7 @@ export default function AdminProducts() {
               {form.thumbnail && (
                 <div className="mt-4">
                   <img
-                    src={form.thumbnail}
+                    src={getImageUrl(form.thumbnail)}
                     alt="Preview"
                     className="h-32 w-32 rounded-lg object-cover border border-slate-600"
                   />
@@ -423,7 +423,7 @@ export default function AdminProducts() {
                       <div className="flex items-center gap-3">
                         {product.thumbnail && (
                           <img
-                            src={product.thumbnail}
+                            src={getImageUrl(product.thumbnail)}
                             alt={product.title}
                             className="h-10 w-10 rounded object-cover bg-slate-700"
                           />

@@ -21,8 +21,8 @@ router.post('/', protect, admin, upload.single('image'), (req, res) => {
     return res.status(400).json({ message: 'Image file is required' })
   }
 
-  const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000'
-  const url = `${backendUrl}/uploads/${req.file.filename}`
+  // Return relative URL - frontend will prepend API base
+  const url = `/uploads/${req.file.filename}`
   res.status(201).json({ url })
 })
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import useEmblaCarousel from 'embla-carousel-react'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
-import api from '../utils/api.js'
+import api, { getImageUrl } from '../utils/api.js'
 import Loader from '../components/Loader.jsx'
 
 function CarouselHero({ slides }) {
@@ -18,7 +18,7 @@ function CarouselHero({ slides }) {
           <div className="flex h-full">
             {slides.map((slide) => (
               <div key={slide._id || slide.id} className="min-w-full flex-shrink-0 relative">
-                <img src={slide.image} alt={slide.title} className="h-full w-full object-cover" />
+                <img src={getImageUrl(slide.image)} alt={slide.title} className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/10 to-slate-950/80" />
                 <div className="absolute inset-0 flex flex-col justify-center px-8 sm:px-16">
                   <p className="text-sm font-semibold uppercase tracking-[0.32em] text-indigo-300">{slide.subtitle || 'Featured slide'}</p>
@@ -66,7 +66,7 @@ function BannerSection({ banners }) {
           <div key={banner._id || banner.id} className="group overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
             {banner.image && (
               <div className="aspect-[16/9] overflow-hidden bg-slate-100">
-                <img src={banner.image} alt={banner.title} className="h-full w-full object-cover" />
+                <img src={getImageUrl(banner.image)} alt={banner.title} className="h-full w-full object-cover" />
               </div>
             )}
             <div className="space-y-2 p-6">
@@ -116,24 +116,28 @@ function CategoryProductsCarousel({ category, products }) {
                 <Link
                   key={product.id || product._id}
                   to={`/product/${product.id || product._id}`}
-                  className="min-w-[280px] flex-shrink-0 overflow-hidden rounded-[28px] border border-slate-200 bg-slate-50 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                  className="group min-w-[240px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-indigo-200"
                 >
-                  <div className="aspect-[4/3] overflow-hidden bg-slate-100">
-                    <img src={product.thumbnail} alt={product.title} className="h-full w-full object-cover" />
+                  <div className="h-48 overflow-hidden bg-slate-100 relative">
+                    <img src={getImageUrl(product.thumbnail)} alt={product.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
-                  <div className="space-y-2 p-4">
-                    <p className="text-xs uppercase tracking-[0.25em] text-slate-500">{product.category}</p>
-                    <h3 className="text-lg font-semibold text-slate-900">{product.title}</h3>
-                    <p className="text-sm text-slate-600 line-clamp-2">{product.description}</p>
-                    <div className="flex items-center justify-between pt-3">
-                      <span className="text-sm font-semibold text-slate-900">${product.price.toFixed(2)}</span>
-                      <span className="text-xs uppercase tracking-[0.2em] text-indigo-600">{product.category}</span>
+                  <div className="flex h-full flex-col justify-between gap-4 p-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.25em] text-indigo-600 font-medium">{product.category}</p>
+                      <h3 className="mt-1 text-base font-bold text-slate-900 leading-tight">{product.title}</h3>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 pt-2">
+                      <span className="text-lg font-extrabold text-slate-900">${product.price.toFixed(2)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-indigo-700">Buy now</span>
+                      </div>
                     </div>
                   </div>
                 </Link>
               ))
             ) : (
-              <div className="min-w-full rounded-[28px] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">
+              <div className="min-w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">
                 No products found for this collection.
               </div>
             )}
@@ -171,6 +175,7 @@ export default function Home() {
   const [error, setError] = useState('')
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: 'start', containScroll: 'trimSnaps' })
+  const [categoriesEmblaRef] = useEmblaCarousel({ loop: false, align: 'start', containScroll: 'trimSnaps' })
   const scrollPrev = () => emblaApi && emblaApi.scrollPrev()
   const scrollNext = () => emblaApi && emblaApi.scrollNext()
 
@@ -272,23 +277,36 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.slice(0, 4).map((category) => (
-            <Link
-              to={`/category/${category.slug}`}
-              key={category.slug}
-              className="group overflow-hidden rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-            >
-              <div className="grid h-40 gap-4 rounded-3xl bg-slate-100 p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.4em] text-indigo-600">{category.tagline ? category.tagline.toUpperCase() : 'POPULAR PRODUCTS'}</p>
-                <div className="rounded-3xl bg-white/80 p-4 shadow-inner shadow-slate-200/50">
-                  <p className="text-base font-semibold leading-6 text-slate-900">{category.title}</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-500">{category.description || 'Shop premium selections'}</p>
-                </div>
-              </div>
-              <div className="mt-4 text-sm leading-6 text-slate-600">{category.description || 'Curated products with quality, style, and fast delivery.'}</div>
-            </Link>
-          ))}
+        <div className="mt-8 overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm">
+          <div className="embla" ref={categoriesEmblaRef}>
+            <div className="flex gap-4 p-4">
+              {categories.slice(0, 8).map((category) => (
+                <Link
+                  to={`/category/${category.slug}`}
+                  key={category.slug}
+                  className="group min-w-[280px] flex-shrink-0 overflow-hidden rounded-[28px] border border-slate-200 bg-slate-50 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                >
+                  <div className="h-48 overflow-hidden bg-slate-100">
+                    {category.image ? (
+                      <img src={getImageUrl(category.image)} alt={category.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center bg-slate-200 text-sm uppercase text-slate-500">No image</div>
+                    )}
+                  </div>
+                  <div className="flex h-full flex-col justify-between gap-4 p-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">{category.tagline || 'Collection'}</p>
+                      <h3 className="mt-2 text-lg font-semibold text-slate-900">{category.title}</h3>
+                      <p className="mt-3 text-sm leading-6 text-slate-600 line-clamp-2">{category.description || 'Explore the latest curated collection.'}</p>
+                    </div>
+                    <div className="flex items-center justify-between pt-3">
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">View category</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -311,22 +329,42 @@ export default function Home() {
                   <Link
                     key={product.id || product._id}
                     to={`/product/${product.id || product._id}`}
-                    className="min-w-[280px] flex-shrink-0 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                    className="group min-w-[300px] flex-shrink-0 overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_20px_60px_-30px_rgba(15,23,42,0.35)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_28px_80px_-40px_rgba(15,23,42,0.35)]"
                   >
-                    <div className="aspect-[4/3] overflow-hidden bg-slate-100">
-                      <img
-                        src={product.thumbnail}
-                        alt={product.title}
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                    <div className="space-y-2 p-4">
-                      <p className="text-xs uppercase tracking-[0.25em] text-slate-500">{product.category}</p>
-                      <h3 className="text-lg font-semibold text-slate-900">{product.title}</h3>
-                      <p className="text-sm text-slate-600 line-clamp-2">{product.description}</p>
-                      <div className="flex items-center justify-between pt-3">
-                        <span className="text-lg font-bold text-slate-900">${product.price.toFixed(2)}</span>
-                        <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">Buy now</span>
+                    <div className="flex h-full flex-col">
+                      <div className="relative overflow-hidden bg-slate-100">
+                        <img
+                          src={getImageUrl(product.thumbnail)}
+                          alt={product.title}
+                        className="h-48 w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-x-0 top-4 flex justify-end px-4">
+                          <span className="rounded-full bg-slate-950/80 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-white shadow-lg shadow-slate-950/10">
+                            Premium
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-1 flex-col justify-between space-y-4 p-6">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">{product.category || 'Premium'}</p>
+                          <h3 className="mt-3 text-xl font-semibold text-slate-900 leading-tight">{product.title}</h3>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex flex-wrap gap-2">
+                            <span className="rounded-full bg-slate-100 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-600">Luxury</span>
+                            <span className="rounded-full bg-slate-100 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-600">Fast shipping</span>
+                            <span className="rounded-full bg-slate-100 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-600">In stock</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-4">
+                            <div>
+                              <p className="text-sm text-slate-500 line-through opacity-70">${(product.price * 1.25).toFixed(2)}</p>
+                              <p className="text-2xl font-semibold text-slate-900">${product.price.toFixed(2)}</p>
+                            </div>
+                            <button className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800">
+                              Add to cart
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </Link>
