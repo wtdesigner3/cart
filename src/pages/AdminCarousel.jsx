@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
 import { Trash2, Edit2, Plus, GripVertical } from 'lucide-react'
 import api, { authHeaders, getImageUrl } from '../utils/api.js'
+import { parseCsv } from '../utils/csvParser.js'
 
 const initialCarouselItemForm = {
   title: '',
@@ -21,11 +22,15 @@ export default function AdminCarousel() {
   const [editingId, setEditingId] = useState(null)
   const [imageFile, setImageFile] = useState(null)
   const [showForm, setShowForm] = useState(false)
+  const [bulkFile, setBulkFile] = useState(null)
+  const [bulkErrors, setBulkErrors] = useState([])
+  const [bulkLoading, setBulkLoading] = useState(false)
+  const [bulkPreviewRows, setBulkPreviewRows] = useState([])
   const headers = authHeaders(token)
 
   const fetchCarouselItems = async () => {
     try {
-      const res = await api.get('/carousel')
+      const res = await api.get('/carousel/admin/all')
       setItems(res.data || [])
     } catch (error) {
       // Silently ignore if endpoint doesn't exist yet
@@ -88,6 +93,16 @@ export default function AdminCarousel() {
     }
   }
 
+  const handleToggle = async (itemId) => {
+    try {
+      await api.patch(`/carousel/${itemId}/toggle`, {}, headers)
+      fetchCarouselItems()
+      toast.success('Carousel item status updated successfully.')
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message)
+    }
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
     try {
@@ -115,6 +130,54 @@ export default function AdminCarousel() {
     }
   }
 
+  const parseBulkCarouselRows = (rows) =>
+    rows.map((row) => ({
+      title: row.title || '',
+      description: row.description || row.descriptionText || '',
+      image: row.image || row.thumbnail || '',
+      link: row.link || '',
+      buttonText: row.buttonText || row.buttontext || row.button || '',
+      isActive: ['true', '1', 'yes', 'active'].includes((row.isActive || 'true').toString().toLowerCase()),
+      order: Number(row.order || 0),
+      id: row.id || Date.now().toString(),
+    }))
+
+  const handleBulkUpload = async () => {
+    if (!bulkFile) return
+    setBulkLoading(true)
+    setBulkErrors([])
+    setBulkPreviewRows([])
+
+    try {
+      const text = await bulkFile.text()
+      const rows = parseCsv(text)
+      const parsedItems = parseBulkCarouselRows(rows)
+      const errors = []
+
+      parsedItems.forEach((item, index) => {
+        if (!item.title) errors.push(`Row ${index + 2}: title is required.`)
+        if (!item.image) errors.push(`Row ${index + 2}: image is required.`)
+      })
+
+      if (errors.length) {
+        setBulkErrors(errors)
+        setBulkPreviewRows(parsedItems.slice(0, 3))
+        setBulkLoading(false)
+        return
+      }
+
+      await api.post('/carousel/bulk', { items: parsedItems }, headers)
+      toast.success('Bulk carousel items uploaded successfully.')
+      setBulkFile(null)
+      setBulkPreviewRows([])
+      fetchCarouselItems()
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setBulkLoading(false)
+    }
+  }
+
   const handleReset = () => {
     setForm(initialCarouselItemForm)
     setEditingId(null)
@@ -129,6 +192,67 @@ export default function AdminCarousel() {
         <p className="text-sm text-indigo-300">
           💡 <strong>Tip:</strong> Carousel items are displayed using Embla Carousel with auto-rotation. Set the order to control display sequence. Enable/disable items to control visibility.
         </p>
+      </div>
+
+      <div className="rounded-2xl border border-slate-700/30 bg-slate-900/70 p-5 shadow-lg">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-white">Bulk CSV Upload</h3>
+            <p className="mt-1 text-sm text-slate-400">Upload carousel items from a CSV file. Use Excel and export as CSV.</p>
+            <p className="mt-1 text-xs text-slate-500">
+              📄 <a href="/sample-carousel.csv" target="_blank" className="text-indigo-400 hover:text-indigo-300 underline">Download sample CSV</a> for bulk upload format
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label className="inline-flex cursor-pointer items-center gap-3 rounded-full border border-slate-600 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-white transition hover:border-indigo-500">
+              <input
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={(event) => setBulkFile(event.target.files?.[0] || null)}
+              />
+              <span>{bulkFile ? bulkFile.name : 'Choose CSV file'}</span>
+            </label>
+            <button
+              onClick={handleBulkUpload}
+              disabled={!bulkFile || bulkLoading}
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3 font-semibold text-white hover:from-indigo-700 hover:to-purple-700 transition disabled:opacity-50"
+            >
+              <Plus className="h-5 w-5" />
+              Upload Bulk
+            </button>
+          </div>
+        </div>
+        {bulkFile && (
+          <div className="mt-4 rounded-2xl border border-slate-700/50 bg-slate-950/70 p-4 text-sm text-slate-300">
+            <p className="font-semibold text-slate-100">CSV format:</p>
+            <p className="mt-1">title,description,image,link,buttonText,order,isActive</p>
+            <p className="mt-2 text-slate-400">Category is not needed here for carousel items.</p>
+            {bulkPreviewRows.length > 0 && (
+              <div className="mt-3 rounded-lg bg-slate-900/80 p-3 text-xs text-slate-300">
+                <p className="font-semibold">Preview rows:</p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {bulkPreviewRows.slice(0, 3).map((row, index) => (
+                    <div key={index} className="rounded-lg bg-slate-950/70 p-3">
+                      <p className="text-slate-100">{row.title || '(no title)'}</p>
+                      <p className="text-slate-400">{row.image || '(no image)'}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {bulkErrors.length > 0 && (
+              <div className="mt-3 rounded-lg bg-rose-950/80 p-3 text-xs text-rose-200">
+                <p className="font-semibold">Errors:</p>
+                <ul className="mt-2 list-disc pl-5">
+                  {bulkErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Form Section */}
@@ -345,6 +469,16 @@ export default function AdminCarousel() {
                       </div>
                     </div>
                     <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => handleToggle(item._id || item.id)}
+                        className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                          item.isActive
+                            ? 'border-green-600 bg-green-600/10 text-green-400 hover:bg-green-600/20'
+                            : 'border-gray-600 bg-gray-600/10 text-gray-400 hover:bg-gray-600/20'
+                        }`}
+                      >
+                        {item.isActive ? 'Deactivate' : 'Activate'}
+                      </button>
                       <button
                         onClick={() => handleEdit(item)}
                         className="flex items-center justify-center gap-2 rounded-lg border border-indigo-600 bg-indigo-600/10 px-3 py-2 text-sm font-semibold text-indigo-400 hover:bg-indigo-600/20 transition"

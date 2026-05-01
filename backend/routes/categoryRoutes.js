@@ -63,6 +63,21 @@ router.put('/:id', protect, admin, async (req, res, next) => {
   }
 })
 
+router.delete('/bulk', protect, admin, async (req, res, next) => {
+  try {
+    const { ids } = req.body
+    if (!Array.isArray(ids) || ids.length === 0) {
+      res.status(400)
+      throw new Error('No category IDs provided for bulk delete.')
+    }
+
+    const deleted = await Category.deleteMany({ _id: { $in: ids } })
+    res.json({ deletedCount: deleted.deletedCount })
+  } catch (error) {
+    next(error)
+  }
+})
+
 router.delete('/:id', protect, admin, async (req, res, next) => {
   try {
     const category = await Category.findById(req.params.id)

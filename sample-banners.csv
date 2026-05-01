@@ -1,0 +1,6 @@
+title,subtitle,image,link,buttonText,order,isActive
+Summer Sale 2024,Up to 70% off on selected items,https://example.com/summer-sale-banner.jpg,/products?category=sale,Shop Now,1,true
+New Arrivals,Discover the latest tech gadgets,https://example.com/new-arrivals-banner.jpg,/products?sort=newest,Explore,2,true
+Free Shipping,Free shipping on orders over $50,https://example.com/free-shipping-banner.jpg,/shipping-info,Learn More,3,true
+Back to School,Special deals for students and educators,https://example.com/back-to-school-banner.jpg,/products?category=school,Save Now,4,false
+Holiday Deals,Winter holiday shopping starts here,https://example.com/holiday-banner.jpg,/products?category=holiday,Shop Deals,5,true

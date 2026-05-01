@@ -19,12 +19,14 @@ export default function AdminCategories() {
   const [editingId, setEditingId] = useState(null)
   const [imageFile, setImageFile] = useState(null)
   const [showForm, setShowForm] = useState(false)
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([])
   const headers = authHeaders(token)
 
   const fetchCategories = async () => {
     try {
       const res = await api.get('/categories')
       setCategories(res.data)
+      setSelectedCategoryIds([])
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
     }
@@ -81,6 +83,34 @@ export default function AdminCategories() {
       await api.delete(`/categories/${categoryId}`, headers)
       fetchCategories()
       toast.success('Category deleted successfully.')
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message)
+    }
+  }
+
+  const handleToggleSelectCategory = (categoryId) => {
+    setSelectedCategoryIds((prev) =>
+      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId],
+    )
+  }
+
+  const handleSelectAllCategories = () => {
+    const allIds = categories.map((category) => category._id || category.id)
+    const allSelected = allIds.length > 0 && allIds.every((id) => selectedCategoryIds.includes(id))
+    setSelectedCategoryIds(allSelected ? [] : allIds)
+  }
+
+  const handleDeleteSelectedCategories = async () => {
+    if (selectedCategoryIds.length === 0) return
+    if (!window.confirm(`Delete ${selectedCategoryIds.length} selected categories?`)) return
+    try {
+      await api.delete('/categories/bulk', {
+        ...headers,
+        data: { ids: selectedCategoryIds },
+      })
+      setSelectedCategoryIds([])
+      fetchCategories()
+      toast.success('Selected categories deleted successfully.')
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
     }
@@ -246,7 +276,26 @@ export default function AdminCategories() {
 
       {/* Categories List */}
       <div className="rounded-2xl border border-slate-700/30 bg-slate-800/30 backdrop-blur-sm p-8 shadow-xl">
-        <h3 className="text-2xl font-bold text-white mb-6">All Categories ({categories.length})</h3>
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <h3 className="text-2xl font-bold text-white">All Categories ({categories.length})</h3>
+          {selectedCategoryIds.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-700/50 bg-slate-900/70 p-4 text-sm text-slate-200">
+              <span>{selectedCategoryIds.length} selected</span>
+              <button
+                onClick={handleDeleteSelectedCategories}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+              >
+                Delete Selected
+              </button>
+              <button
+                onClick={() => setSelectedCategoryIds([])}
+                className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
+              >
+                Clear Selection
+              </button>
+            </div>
+          )}
+        </div>
 
         {categories.length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-600 bg-slate-800/20 px-6 py-12 text-center">
@@ -254,11 +303,24 @@ export default function AdminCategories() {
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((category) => (
-              <div
-                key={category._id || category.id}
-                className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl"
-              >
+            {categories.map((category) => {
+              const categoryId = category._id || category.id
+              return (
+                <div
+                  key={categoryId}
+                  className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={selectedCategoryIds.includes(categoryId)}
+                        onChange={() => handleToggleSelectCategory(categoryId)}
+                        className="h-4 w-4 rounded border-slate-500 text-indigo-500"
+                      />
+                      Select
+                    </label>
+                  </div>
                 <div className="rounded-[26px] bg-slate-100 p-5 text-center">
                   <div className="mx-auto mb-5 inline-flex h-20 w-20 items-center justify-center rounded-[24px] bg-[#eef2ff] text-xs font-semibold uppercase tracking-[0.45em] text-indigo-600">
                     {category.tagline ? category.tagline.split(' ').slice(0, 2).join(' ') : 'POPULAR'}
@@ -300,7 +362,8 @@ export default function AdminCategories() {
                   </button>
                 </div>
               </div>
-            ))}
+            )
+            })}
           </div>
         )}
       </div>

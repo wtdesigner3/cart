@@ -51,6 +51,56 @@ router.post('/', protect, admin, async (req, res) => {
   }
 })
 
+// Bulk create carousel items (admin)
+router.post('/bulk', protect, admin, async (req, res) => {
+  try {
+    const { items: incoming } = req.body
+    if (!Array.isArray(incoming) || incoming.length === 0) {
+      return res.status(400).json({ message: 'No carousel records provided.' })
+    }
+
+    const created = incoming.map((item) => {
+      const carouselItem = {
+        _id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
+        id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
+        title: item.title,
+        description: item.description || '',
+        image: item.image || '',
+        link: item.link || '',
+        buttonText: item.buttonText || '',
+        isActive: item.isActive !== false,
+        order: item.order || 0,
+        createdAt: new Date(),
+      }
+      carouselItems.push(carouselItem)
+      return carouselItem
+    })
+
+    res.status(201).json({ count: created.length, items: created })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+})
+
+// Toggle carousel item active status (admin)
+router.patch('/:id/toggle', protect, admin, async (req, res) => {
+  try {
+    const item = carouselItems.find(c => c._id === req.params.id || c.id === req.params.id)
+    if (!item) {
+      return res.status(404).json({ message: 'Carousel item not found' })
+    }
+
+    item.isActive = !item.isActive
+    res.json({
+      id: item.id,
+      isActive: item.isActive,
+      message: `Carousel item ${item.isActive ? 'activated' : 'deactivated'} successfully`
+    })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+})
+
 // Update carousel item (admin)
 router.put('/:id', protect, admin, async (req, res) => {
   try {

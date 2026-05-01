@@ -1,0 +1,6 @@
+title,description,image,link,buttonText,order,isActive
+Premium Smartphones,Discover the latest flagship phones with cutting-edge technology,https://example.com/smartphones-carousel.jpg,/category/smartphones,Shop Phones,1,true
+Gaming Laptops,High-performance laptops for gaming and content creation,https://example.com/gaming-laptops-carousel.jpg,/category/laptops,View Laptops,2,true
+Wireless Headphones,Immerse yourself in premium audio with noise-canceling technology,https://example.com/headphones-carousel.jpg,/category/headphones,Explore Audio,3,true
+Smart Home Devices,Transform your home with the latest smart technology,https://example.com/smart-home-carousel.jpg,/category/smart-home,Discover More,4,true
+Professional Cameras,Capture stunning photos and videos with DSLR and mirrorless cameras,https://example.com/cameras-carousel.jpg,/category/cameras,Shop Cameras,5,false

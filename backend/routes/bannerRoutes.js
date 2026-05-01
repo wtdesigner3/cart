@@ -50,6 +50,56 @@ router.post('/', protect, admin, async (req, res) => {
   }
 })
 
+// Bulk create banners (admin)
+router.post('/bulk', protect, admin, async (req, res) => {
+  try {
+    const { banners: incoming } = req.body
+    if (!Array.isArray(incoming) || incoming.length === 0) {
+      return res.status(400).json({ message: 'No banner records provided.' })
+    }
+
+    const created = incoming.map((item) => {
+      const banner = {
+        _id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
+        id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
+        title: item.title,
+        subtitle: item.subtitle || '',
+        image: item.image || '',
+        link: item.link || '',
+        buttonText: item.buttonText || '',
+        isActive: item.isActive !== false,
+        order: item.order || 0,
+        createdAt: new Date(),
+      }
+      banners.push(banner)
+      return banner
+    })
+
+    res.status(201).json({ count: created.length, banners: created })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+})
+
+// Toggle banner active status (admin)
+router.patch('/:id/toggle', protect, admin, async (req, res) => {
+  try {
+    const banner = banners.find(b => b._id === req.params.id || b.id === req.params.id)
+    if (!banner) {
+      return res.status(404).json({ message: 'Banner not found' })
+    }
+
+    banner.isActive = !banner.isActive
+    res.json({
+      id: banner.id,
+      isActive: banner.isActive,
+      message: `Banner ${banner.isActive ? 'activated' : 'deactivated'} successfully`
+    })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+})
+
 // Update banner (admin)
 router.put('/:id', protect, admin, async (req, res) => {
   try {

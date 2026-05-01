@@ -20,6 +20,7 @@ const productSchema = new mongoose.Schema(
     availabilityStatus: String,
     images: [String],
     thumbnail: String,
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true },
 )

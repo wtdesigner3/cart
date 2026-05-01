@@ -1,0 +1,21 @@
+title,description,price,category,thumbnail,stock,brand,sku,isActive
+iPhone 15 Pro Max,The latest iPhone with advanced camera system and titanium design. Features A17 Pro chip, 6.7-inch Super Retina XDR display, and up to 29 hours of video playback.,1199,smartphones,https://example.com/iphone15.jpg,50,Apple,IPH15PM-128GB,true
+Samsung Galaxy S24 Ultra,Flagship Android phone with S Pen, 200MP camera, and 5000mAh battery. Perfect for productivity and photography enthusiasts.,1099,smartphones,https://example.com/galaxy-s24.jpg,75,Samsung,SGS24U-512GB,true
+MacBook Air M3,13-inch laptop with M3 chip, up to 18 hours of battery life, and stunning Liquid Retina display. Ideal for students and professionals.,1099,laptops,https://example.com/macbook-air.jpg,30,Apple,MBA13-M3-256GB,true
+Dell XPS 13,Ultra-portable laptop with Intel Core i7, 16GB RAM, and 512GB SSD. Perfect for business and travel.,1299,laptops,https://example.com/dell-xps13.jpg,25,Dell,XPS13-I7-16GB,true
+Sony WH-1000XM5,Industry-leading noise canceling wireless headphones with 30-hour battery life and premium sound quality.,349,headphones,https://example.com/sony-wh1000xm5.jpg,100,Sony,WH1000XM5-BLK,true
+AirPods Pro (2nd Gen),Active noise cancellation, adaptive transparency, and customizable fit. Up to 6 hours of listening time with case.,249,headphones,https://example.com/airpods-pro.jpg,150,Apple,AP2G-WHT,true
+Nintendo Switch OLED,7-inch OLED screen, enhanced audio, and 64GB internal storage. Includes dock and Joy-Con controllers.,349,gaming,https://example.com/switch-oled.jpg,60,Nintendo,NSW-OLED-RED,true
+PlayStation 5 Console,Next-gen gaming console with ultra-high speed SSD, Ray Tracing, and 4K gaming. Includes DualSense controller.,499,gaming,https://example.com/ps5.jpg,40,Sony,PS5-STD-WHT,true
+Canon EOS R6,Full-frame mirrorless camera with 20.1MP sensor, 4K video, and advanced autofocus. Perfect for professional photography.,2499,cameras,https://example.com/canon-eos-r6.jpg,15,Canon,EOSR6-BODY,true
+GoPro HERO11 Silver,Action camera with 5.3K video, waterproof design, and image stabilization. Great for adventure sports.,199,cameras,https://example.com/gopro-hero11.jpg,80,GoPro,HERO11-SILVER,true
+Apple Watch Series 9,Advanced health and fitness features with always-on display, GPS, and cellular connectivity. 45mm aluminum case.,429,smartwatches,https://example.com/apple-watch-s9.jpg,90,Apple,AW-S9-45MM,true
+Samsung Galaxy Watch 6,Smartwatch with health monitoring, GPS, and long battery life. Compatible with Android and iOS devices.,399,smartwatches,https://example.com/galaxy-watch6.jpg,65,Samsung,GW6-44MM-BLK,true
+iPad Pro 12.9-inch,12.9-inch Liquid Retina XDR display, M2 chip, and Apple Pencil Pro support. Perfect for creative professionals.,1099,tablets,https://example.com/ipad-pro-12.jpg,35,Apple,IPADPRO12-M2-256GB,true
+Samsung Galaxy Tab S9 Ultra,14.6-inch AMOLED display, S Pen included, and powerful Snapdragon processor. Ultimate Android tablet.,1199,tablets,https://example.com/galaxy-tab-s9.jpg,20,Samsung,GTS9U-512GB,true
+Bose QuietComfort Earbuds II,True wireless earbuds with world-class noise cancellation and 6-hour battery life. Premium audio experience.,279,earbuds,https://example.com/bose-qc2.jpg,120,Bose,QCEARBUD2-WHT,true
+Jabra Elite 8 Active,Waterproof true wireless earbuds with 8-hour battery and secure fit for active lifestyles.,229,earbuds,https://example.com/jabra-elite8.jpg,85,Jabra,ELITE8-BLK,true
+Logitech MX Master 3S,Advanced wireless mouse with 8K DPI, ergonomic design, and 70-day battery life. Perfect for productivity.,99,mice,https://example.com/logitech-mx3s.jpg,200,Logitech,MXMASTER3S-GRY,true
+Razer DeathAdder V3 Pro,Esports gaming mouse with 30K DPI optical sensor and ultra-lightweight design.,149,mice,https://example.com/razer-deathadder.jpg,150,Razer,DA-V3-PRO-BLK,true
+ASUS ROG Strix GeForce RTX 4080,High-end graphics card with 16GB GDDR6X memory and ray tracing support. Ultimate gaming performance.,1199,graphics-cards,https://example.com/rtx-4080.jpg,10,ASUS,RTX4080-16GB,true
+NVIDIA GeForce RTX 4070 Ti,Excellent 1440p gaming performance with 12GB GDDR6X VRAM and DLSS 3 technology.,799,graphics-cards,https://example.com/rtx-4070ti.jpg,15,NVIDIA,RTX4070TI-12GB,false
