@@ -47,6 +47,9 @@ export default function ProductDetail() {
   const handleAddToCart = async () => {
     if (product) {
       await dispatch(addCartItem(product))
+      // Scroll to top and show notification
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      toast.success(`${product.title} added to cart!`, { autoClose: 2000 })
     }
   }
 

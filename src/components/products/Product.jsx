@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { fetchProduct } from '../../features/cart/productSlice'
 import { addCartItem } from '../../features/cartadd/cartSlice'
 import { getImageUrl } from '../../utils/api.js'
@@ -15,6 +16,13 @@ export default function Product() {
   useEffect(() => {
     dispatch(fetchProduct())
   }, [dispatch])
+
+  const handleAddToCart = (product) => {
+    dispatch(addCartItem(product))
+    // Scroll to top and show notification
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    toast.success(`${product.title} added to cart!`, { autoClose: 2000 })
+  }
 
   if (status === 'loading') {
     return <Loader message="Loading products..." />
@@ -53,12 +61,20 @@ export default function Product() {
                   {product.title}
                 </Link>
                 <p className="mt-2 text-sm text-gray-500 line-clamp-2">{product.description}</p>
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  <span className="text-lg font-bold text-gray-900">${product.price}</span>
+                <div className="mt-4 flex flex-col gap-3">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg font-bold text-gray-900">${product.price.toFixed(2)}</span>
+                    {product.mrp > product.price && (
+                      <span className="text-sm text-gray-500 line-through">${product.mrp.toFixed(2)}</span>
+                    )}
+                    {product.discountPercentage > 0 && (
+                      <span className="text-sm font-semibold text-green-600">Save {product.discountPercentage}%</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => dispatch(addCartItem(product))}
+                      onClick={() => handleAddToCart(product)}
                       className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
                     >
                       Add to cart

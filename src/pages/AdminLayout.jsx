@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { ChevronDown, Home, Package, ShoppingCart, Users, Gift, Zap, Settings, LogOut } from 'lucide-react'
+import { ChevronDown, Home, Package, ShoppingCart, Users, Settings, LogOut, ExternalLink } from 'lucide-react'
 import './AdminLayout.css'
 
 function classNames(...classes) {
@@ -29,16 +29,6 @@ export default function AdminLayout() {
       ],
     },
     { label: 'Customers', to: '/admin/users', icon: Users },
-    { label: 'Gift Cards', to: '/admin/gift-cards', icon: Gift },
-    {
-      label: 'Promotions',
-      icon: Zap,
-      submenu: [
-        { label: 'Banners', to: '/admin/banners' },
-        { label: 'Carousel', to: '/admin/carousel' },
-      ],
-    },
-    { label: 'Discounts', to: '/admin/discounts', icon: Gift },
   ]
 
   const toggleMenu = (label) => {
@@ -178,6 +168,27 @@ export default function AdminLayout() {
               </div>
             ))}
           </nav>
+
+          {/* Visit Website Section */}
+          {sidebarExpanded && (
+            <div className="mb-6 rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-4">
+              <a
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between gap-3 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md group"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="relative h-2 w-2 rounded-full bg-white">
+                    <span className="absolute inset-0 animate-pulse rounded-full bg-white"></span>
+                  </span>
+                  Visit Website
+                </span>
+                <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </a>
+              <p className="mt-2 text-xs text-indigo-700">View your store as customers see it</p>
+            </div>
+          )}
 
           {/* Settings Dropdown */}
           <div className="border-t border-gray-200 pt-4" ref={settingsRef}>

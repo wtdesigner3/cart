@@ -5,6 +5,7 @@ import { Outlet } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { fetchCart } from '../../features/cartadd/cartSlice'
 import ScrollToTop from '../ScrollToTop'
+import CartNotification from '../CartNotification'
 
 export default function Layout() {
   const dispatch = useDispatch()
@@ -16,6 +17,7 @@ export default function Layout() {
   return (
     <>
       <ScrollToTop />
+      <CartNotification />
       <Header />
       <main className="min-h-screen">
         <Outlet />

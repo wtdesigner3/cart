@@ -255,13 +255,20 @@ export default function AdminProducts() {
     setActiveAction({ type: 'submit', id: editingId || null })
     try {
       const imageUrl = await uploadImage()
+      
+      // Calculate discounted price based on discount percentage
+      let calculatedPrice = form.price
+      if (form.discountPercentage && form.discountPercentage > 0 && form.mrp > 0) {
+        calculatedPrice = form.mrp - (form.mrp * form.discountPercentage / 100)
+      }
+      
       const payload = {
         ...form,
+        price: calculatedPrice,
         id: form.id || Date.now().toString(),
         thumbnail: imageUrl,
         tags: form.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
-        discountPercentage:
-          form.discountPercentage || (form.mrp > form.price ? Math.round(((form.mrp - form.price) / form.mrp) * 100) : 0),
+        discountPercentage: form.discountPercentage || (form.mrp > calculatedPrice ? Math.round(((form.mrp - calculatedPrice) / form.mrp) * 100) : 0),
       }
       if (editingId) {
         await api.put(`/products/${editingId}`, payload, headers)
@@ -585,18 +592,6 @@ export default function AdminProducts() {
                   />
                 </label>
                 <label className="block">
-                  <span className="text-sm font-semibold text-gray-700">Discounted Price ($)</span>
-                  <input
-                    name="discountedPrice"
-                    type="number"
-                    step="0.01"
-                    value={form.discountedPrice}
-                    onChange={handleProductChange}
-                    className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-                    placeholder="0.00"
-                  />
-                </label>
-                <label className="block">
                   <span className="text-sm font-semibold text-gray-700">Discount (%)</span>
                   <input
                     name="discountPercentage"
@@ -640,6 +635,34 @@ export default function AdminProducts() {
                   </select>
                 </label>
               </div>
+
+              {/* Discount Preview */}
+              {form.mrp > 0 && (form.discountPercentage > 0 || form.price > 0) && (
+                <div className="mt-6 rounded-lg border border-green-200 bg-green-50 p-4">
+                  <h5 className="font-semibold text-green-900 mb-3">💰 Price Preview</h5>
+                  <div className="grid gap-4 sm:grid-cols-3 text-sm">
+                    <div>
+                      <p className="text-green-700 mb-1">Original Price (MRP)</p>
+                      <p className="text-xl font-bold text-green-900">${form.mrp.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-green-700 mb-1">Discount Amount</p>
+                      <p className="text-xl font-bold text-green-900">
+                        ${(form.mrp * form.discountPercentage / 100).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-green-100 p-3">
+                      <p className="text-green-700 mb-1">Final Price (Selling Price)</p>
+                      <p className="text-2xl font-bold text-green-900">
+                        ${(form.mrp - (form.mrp * form.discountPercentage / 100)).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs text-green-700">
+                    ℹ️ When you save, the final price will be automatically set as the selling price
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Brand & SKU */}
