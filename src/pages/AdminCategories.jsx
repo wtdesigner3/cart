@@ -20,6 +20,8 @@ export default function AdminCategories() {
   const [imageFile, setImageFile] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 12
   const headers = authHeaders(token)
 
   const fetchCategories = async () => {
@@ -35,6 +37,12 @@ export default function AdminCategories() {
   useEffect(() => {
     fetchCategories()
   }, [])
+
+  useEffect(() => {
+    if (currentPage > 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [currentPage])
 
   const createSlug = (text) =>
     text
@@ -150,6 +158,9 @@ export default function AdminCategories() {
     setImageFile(null)
     setShowForm(false)
   }
+
+  const totalPages = Math.max(1, Math.ceil(categories.length / itemsPerPage))
+  const pageCategories = categories.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   return (
     <div className="space-y-6">
@@ -277,7 +288,20 @@ export default function AdminCategories() {
       {/* Categories List */}
       <div className="rounded-2xl border border-slate-700/30 bg-slate-800/30 backdrop-blur-sm p-8 shadow-xl">
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <h3 className="text-2xl font-bold text-white">All Categories ({categories.length})</h3>
+          <div className="flex items-center gap-4">
+            <h3 className="text-2xl font-bold text-white">All Categories ({categories.length})</h3>
+            {categories.length > 0 && (
+              <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={categories.length > 0 && categories.every((category) => selectedCategoryIds.includes(category._id || category.id))}
+                  onChange={handleSelectAllCategories}
+                  className="h-4 w-4 rounded border-slate-500 text-indigo-500"
+                />
+                Select All
+              </label>
+            )}
+          </div>
           {selectedCategoryIds.length > 0 && (
             <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-700/50 bg-slate-900/70 p-4 text-sm text-slate-200">
               <span>{selectedCategoryIds.length} selected</span>
@@ -302,69 +326,108 @@ export default function AdminCategories() {
             <p className="text-slate-400">No categories yet. Create your first one!</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((category) => {
-              const categoryId = category._id || category.id
-              return (
-                <div
-                  key={categoryId}
-                  className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl"
+          <>
+            <div className="overflow-hidden rounded-3xl border border-slate-700/50 bg-slate-900">
+              <table className="min-w-full divide-y divide-slate-700">
+                <thead className="bg-slate-950">
+                  <tr>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Select</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Category</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Description</th>
+                    <th className="px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700 bg-slate-900">
+                  {pageCategories.map((category) => {
+                    const categoryId = category._id || category.id
+                    return (
+                      <tr key={categoryId} className="hover:bg-slate-800/70 transition">
+                        <td className="px-4 py-4 align-top">
+                          <input
+                            type="checkbox"
+                            checked={selectedCategoryIds.includes(categoryId)}
+                            onChange={() => handleToggleSelectCategory(categoryId)}
+                            className="h-4 w-4 rounded border-slate-600 text-indigo-500"
+                          />
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          <div className="flex items-start gap-3">
+                            <div className="h-14 w-14 overflow-hidden rounded-2xl bg-slate-800">
+                              {category.image ? (
+                                <img src={getImageUrl(category.image)} alt={category.title} className="h-full w-full object-cover" />
+                              ) : (
+                                <div className="flex h-full items-center justify-center text-xs text-slate-500">No image</div>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-white">{category.title || 'Untitled category'}</p>
+                              <p className="mt-1 text-xs text-slate-500">{category.slug || 'No slug'}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          <p className="font-semibold text-slate-200">{category.tagline || 'No tagline'}</p>
+                          <p className="mt-1 text-xs leading-5 text-slate-400 line-clamp-2">{category.description || 'No description provided.'}</p>
+                        </td>
+                        <td className="px-4 py-4 text-right align-top">
+                          <div className="inline-flex flex-wrap justify-end gap-2">
+                            <button
+                              onClick={() => handleEdit(category)}
+                              className="inline-flex items-center gap-2 rounded-2xl border border-indigo-600 bg-indigo-600/10 px-3 py-2 text-xs font-semibold text-indigo-200 hover:bg-indigo-600/15"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(categoryId)}
+                              className="inline-flex items-center gap-2 rounded-2xl border border-red-600 bg-red-600/10 px-3 py-2 text-xs font-semibold text-red-200 hover:bg-red-600/15"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {categories.length > itemsPerPage && (
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
-                      <input
-                        type="checkbox"
-                        checked={selectedCategoryIds.includes(categoryId)}
-                        onChange={() => handleToggleSelectCategory(categoryId)}
-                        className="h-4 w-4 rounded border-slate-500 text-indigo-500"
-                      />
-                      Select
-                    </label>
-                  </div>
-                <div className="rounded-[26px] bg-slate-100 p-5 text-center">
-                  <div className="mx-auto mb-5 inline-flex h-20 w-20 items-center justify-center rounded-[24px] bg-[#eef2ff] text-xs font-semibold uppercase tracking-[0.45em] text-indigo-600">
-                    {category.tagline ? category.tagline.split(' ').slice(0, 2).join(' ') : 'POPULAR'}
-                  </div>
-                  <h4 className="text-xl font-bold tracking-tight text-slate-900">
-                    {category.title || 'Category Title'}
-                  </h4>
-                  <p className="mt-3 text-sm leading-6 text-slate-500">
-                    {category.description || 'Shop premium selections'}
-                  </p>
-                </div>
-
-                <div className="mt-5 rounded-[28px] border border-slate-200 bg-slate-50 p-5">
-                  {category.image ? (
-                    <div className="overflow-hidden rounded-3xl">
-                      <img src={getImageUrl(category.image)} alt={category.title} className="h-40 w-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="h-40 rounded-3xl bg-slate-200" />
-                  )}
-                  <p className="mt-4 text-xs uppercase tracking-[0.24em] text-indigo-500">
-                    CATEGORY
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">Manage this collection</p>
-                </div>
-
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, index) => (
                   <button
-                    onClick={() => handleEdit(category)}
-                    className="flex-1 rounded-2xl border border-indigo-600 bg-indigo-600/10 px-4 py-3 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-600/15"
+                    key={index}
+                    type="button"
+                    onClick={() => setCurrentPage(index + 1)}
+                    className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                      currentPage === index + 1
+                        ? 'bg-indigo-600 text-white'
+                        : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                    }`}
                   >
-                    Edit
+                    {index + 1}
                   </button>
-                  <button
-                    onClick={() => handleDelete(category._id || category.id)}
-                    className="flex-1 rounded-2xl border border-red-600 bg-red-600/10 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-600/15"
-                  >
-                    Delete
-                  </button>
-                </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                  className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
               </div>
-            )
-            })}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

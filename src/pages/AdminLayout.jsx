@@ -113,7 +113,16 @@ export default function AdminLayout() {
                 {item.submenu && expandedMenu === item.label && (
                   <div className="mt-1 space-y-1 pl-2">
                     {item.submenu.map((subitem) => (
-                      <NavLink key={subitem.to} to={subitem.to} end>
+                      <NavLink
+                        key={subitem.to}
+                        to={subitem.to}
+                        end
+                        onClick={() => {
+                          if (subitem.to === '/admin/products') {
+                            window.dispatchEvent(new CustomEvent('admin-view-products-click'))
+                          }
+                        }}
+                      >
                         {({ isActive }) => (
                           <div
                             className={classNames(

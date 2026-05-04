@@ -1,17 +1,25 @@
+import process from 'process'
 import express from 'express'
 import Stripe from 'stripe'
 import Order from '../models/Order.js'
 
 const router = express.Router()
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing STRIPE_SECRET_KEY in backend/.env. Add your Stripe secret key and restart the backend.')
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || process.env.STRIPE_API_KEY
+let stripe = null
+if (stripeSecretKey) {
+  stripe = new Stripe(stripeSecretKey)
+} else {
+  console.warn('Missing STRIPE_SECRET_KEY in backend/.env. Stripe payment routes are disabled until configured.')
 }
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 router.post('/create-checkout-session', async (req, res, next) => {
   try {
+    if (!stripe) {
+      res.status(500)
+      throw new Error('Stripe is not configured on the backend. Please set STRIPE_SECRET_KEY.')
+    }
+
     const { customerName, email, address, city, country, postalCode, items, total } = req.body
 
     if (!customerName || !email || !address || !items?.length) {
@@ -70,6 +78,11 @@ router.post('/create-checkout-session', async (req, res, next) => {
 
 router.get('/confirm-session', async (req, res, next) => {
   try {
+    if (!stripe) {
+      res.status(500)
+      throw new Error('Stripe is not configured on the backend. Please set STRIPE_SECRET_KEY.')
+    }
+
     const sessionId = req.query.session_id
     if (!sessionId) {
       res.status(400)

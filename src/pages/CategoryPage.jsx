@@ -9,6 +9,8 @@ export default function CategoryPage() {
   const [products, setProducts] = useState([])
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 12
 
   useEffect(() => {
     const loadCategory = async () => {
@@ -16,7 +18,7 @@ export default function CategoryPage() {
         setStatus('loading')
         const [categoryRes, productsRes] = await Promise.all([
           api.get('/categories'),
-          api.get(`/products?category=${encodeURIComponent(slug)}&limit=20`),
+          api.get(`/products?category=${encodeURIComponent(slug)}&limit=100`),
         ])
         const current = categoryRes.data.find((item) => item.slug === slug)
         setCategory(current || null)
@@ -29,6 +31,20 @@ export default function CategoryPage() {
     }
     loadCategory()
   }, [slug])
+
+  useEffect(() => {
+    setCurrentPage(1)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [slug])
+
+  useEffect(() => {
+    if (currentPage > 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [currentPage])
+
+  const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage))
+  const pageProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   if (status === 'loading') {
     return <Loader message="Loading category..." />
@@ -58,8 +74,8 @@ export default function CategoryPage() {
       </div>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {products.length ? (
-          products.map((product) => (
+        {pageProducts.length ? (
+          pageProducts.map((product) => (
             <Link
               to={`/product/${product.id || product._id}`}
               key={product.id || product._id}
@@ -84,6 +100,40 @@ export default function CategoryPage() {
           </div>
         )}
       </div>
+      {products.length > itemsPerPage && (
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Previous
+          </button>
+          {Array.from({ length: totalPages }, (_, index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={() => setCurrentPage(index + 1)}
+              className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                currentPage === index + 1
+                  ? 'bg-indigo-600 text-white'
+                  : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              {index + 1}
+            </button>
+          ))}
+          <button
+            type="button"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+            className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   )
 }

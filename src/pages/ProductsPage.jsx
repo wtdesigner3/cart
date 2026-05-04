@@ -14,6 +14,8 @@ export default function ProductsPage() {
   const [sortOrder, setSortOrder] = useState('newest')
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 12
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -41,6 +43,17 @@ export default function ProductsPage() {
     setSearchTerm(query)
   }, [location.search])
 
+  useEffect(() => {
+    if (currentPage > 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [currentPage])
+
+  useEffect(() => {
+    setCurrentPage(1)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [searchTerm, selectedCategory, minPrice, maxPrice, sortOrder])
+
   const filteredProducts = useMemo(() => {
     const numericMin = minPrice ? Number(minPrice) : null
     const numericMax = maxPrice ? Number(maxPrice) : null
@@ -65,6 +78,13 @@ export default function ProductsPage() {
         return new Date(b.createdAt || b._id)?.getTime() - new Date(a.createdAt || a._id)?.getTime()
       })
   }, [products, searchTerm, selectedCategory, minPrice, maxPrice, sortOrder])
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage))
+  const pageItems = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filteredProducts])
 
   if (status === 'loading') {
     return <Loader message="Loading products..." />
@@ -185,8 +205,8 @@ export default function ProductsPage() {
 
         <main className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-            {filteredProducts.length ? (
-              filteredProducts.map((product) => (
+            {pageItems.length ? (
+              pageItems.map((product) => (
                 <Link
                   to={`/product/${product.id || product._id}`}
                   key={product.id || product._id}
@@ -217,6 +237,40 @@ export default function ProductsPage() {
               </div>
             )}
           </div>
+          {filteredProducts.length > itemsPerPage && (
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                    currentPage === index + 1
+                      ? 'bg-indigo-600 text-white'
+                      : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </main>
       </div>
     </div>

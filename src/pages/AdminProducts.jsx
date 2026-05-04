@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { useLocation } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { CKEditor } from '@ckeditor/ckeditor5-react'
 import * as CKEditorBuild from '@ckeditor/ckeditor5-build-classic'
 import { Trash2, Edit2, Plus, Search } from 'lucide-react'
+import Loader from '../components/Loader.jsx'
 import api, { authHeaders, getImageUrl } from '../utils/api.js'
 import { parseCsv } from '../utils/csvParser.js'
 
@@ -14,7 +16,13 @@ const initialProductForm = {
   title: '',
   description: '',
   price: 0,
+  mrp: 0,
+  discountedPrice: 0,
+  discountPercentage: 0,
   category: '',
+  unit: 'pcs',
+  tagline: '',
+  tags: '',
   thumbnail: '',
   stock: 0,
   brand: '',
@@ -37,14 +45,21 @@ export default function AdminProducts() {
   const [bulkPreviewRows, setBulkPreviewRows] = useState([])
   const [bulkProgress, setBulkProgress] = useState(0)
   const [selectedProductIds, setSelectedProductIds] = useState([])
+  const [pageLoading, setPageLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [activeAction, setActiveAction] = useState({ type: '', id: null })
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 12
   const formRef = useRef(null)
+  const location = useLocation()
   const progressIntervalRef = useRef(null)
   const headers = authHeaders(token)
 
   const fetchData = async () => {
+    setPageLoading(true)
     try {
       const [productRes, categoryRes] = await Promise.all([
-        api.get('/products'),
+        api.get('/products?includeInactive=true'),
         api.get('/categories'),
       ])
       setProducts(productRes.data)
@@ -52,6 +67,8 @@ export default function AdminProducts() {
       setSelectedProductIds([])
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setPageLoading(false)
     }
   }
 
@@ -59,11 +76,41 @@ export default function AdminProducts() {
     fetchData()
   }, [])
 
+  useEffect(() => {
+    setCurrentPage(1)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [searchTerm])
+
+  useEffect(() => {
+    if (currentPage > 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [currentPage])
+
+  useEffect(() => {
+    const resetView = () => {
+      setShowForm(false)
+      setEditingId(null)
+      setImageFile(null)
+    }
+
+    if (location.pathname === '/admin/products') {
+      resetView()
+    }
+
+    window.addEventListener('admin-view-products-click', resetView)
+    return () => {
+      window.removeEventListener('admin-view-products-click', resetView)
+    }
+  }, [location.pathname])
+
   const handleProductChange = (event) => {
     const { name, value } = event.target
     setForm((prev) => ({
       ...prev,
-      [name]: name === 'price' || name === 'stock' ? Number(value) : value,
+      [name]: ['price', 'stock', 'mrp', 'discountedPrice', 'discountPercentage'].includes(name)
+        ? Number(value)
+        : value,
     }))
   }
 
@@ -94,7 +141,13 @@ export default function AdminProducts() {
       title: product.title || '',
       description: product.description || '',
       price: product.price || 0,
+      mrp: product.mrp || 0,
+      discountedPrice: product.discountedPrice || 0,
+      discountPercentage: product.discountPercentage || 0,
       category: product.category || '',
+      unit: product.unit || 'pcs',
+      tagline: product.tagline || '',
+      tags: product.tags?.join(', ') || '',
       thumbnail: product.thumbnail || '',
       stock: product.stock || 0,
       brand: product.brand || '',
@@ -111,39 +164,54 @@ export default function AdminProducts() {
   }
 
   const handleToggleProduct = async (productId) => {
+    setActionLoading(true)
+    setActiveAction({ type: 'toggle', id: productId })
     try {
       await api.patch(`/products/${productId}/toggle`, {}, headers)
-      fetchData()
+      await fetchData()
       toast.success('Product status updated successfully.')
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setActionLoading(false)
+      setActiveAction({ type: '', id: null })
     }
   }
 
   const handleDeleteProduct = async (productId) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return
+    setActionLoading(true)
+    setActiveAction({ type: 'delete', id: productId })
     try {
       await api.delete(`/products/${productId}`, headers)
-      fetchData()
+      await fetchData()
       toast.success('Product deleted successfully.')
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setActionLoading(false)
+      setActiveAction({ type: '', id: null })
     }
   }
 
   const handleDeleteSelectedProducts = async () => {
     if (selectedProductIds.length === 0) return
     if (!window.confirm(`Delete ${selectedProductIds.length} selected products?`)) return
+    setActionLoading(true)
+    setActiveAction({ type: 'bulk-delete', id: null })
     try {
       await api.delete('/products/bulk', {
         ...headers,
         data: { ids: selectedProductIds },
       })
       setSelectedProductIds([])
-      fetchData()
+      await fetchData()
       toast.success('Selected products deleted successfully.')
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setActionLoading(false)
+      setActiveAction({ type: '', id: null })
     }
   }
 
@@ -183,12 +251,17 @@ export default function AdminProducts() {
 
   const handleProductSubmit = async (event) => {
     event.preventDefault()
+    setActionLoading(true)
+    setActiveAction({ type: 'submit', id: editingId || null })
     try {
       const imageUrl = await uploadImage()
       const payload = {
         ...form,
         id: form.id || Date.now().toString(),
         thumbnail: imageUrl,
+        tags: form.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+        discountPercentage:
+          form.discountPercentage || (form.mrp > form.price ? Math.round(((form.mrp - form.price) / form.mrp) * 100) : 0),
       }
       if (editingId) {
         await api.put(`/products/${editingId}`, payload, headers)
@@ -201,9 +274,12 @@ export default function AdminProducts() {
       setEditingId(null)
       setImageFile(null)
       setShowForm(false)
-      fetchData()
+      await fetchData()
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setActionLoading(false)
+      setActiveAction({ type: '', id: null })
     }
   }
 
@@ -212,7 +288,13 @@ export default function AdminProducts() {
       title: row.title || row.name || '',
       description: row.description || '',
       price: Number(row.price || row.priceUsd || 0),
+      mrp: Number(row.mrp || 0),
+      discountedPrice: Number(row.discountedPrice || row.discountPrice || row.price || 0),
+      discountPercentage: Number(row.discountPercentage || 0),
       category: row.category || row.categorySlug || '',
+      unit: row.unit || 'pcs',
+      tagline: row.tagline || '',
+      tags: typeof row.tags === 'string' ? row.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [],
       thumbnail: row.thumbnail || row.image || '',
       stock: Number(row.stock || row.quantity || 0),
       brand: row.brand || '',
@@ -280,10 +362,23 @@ export default function AdminProducts() {
     [products, searchTerm],
   )
 
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage))
+  const pageProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [totalPages, currentPage])
+
   const categoryOptions = useMemo(
     () => categories.map((category) => ({ label: category.title, value: category.slug })),
     [categories],
   )
+
+  if (pageLoading) {
+    return <Loader message="Loading admin products..." />
+  }
 
   return (
     <div className="space-y-6">
@@ -297,6 +392,27 @@ export default function AdminProducts() {
         }
       `}</style>
 
+      {(actionLoading || bulkLoading) && (
+        <div className="rounded-2xl border border-indigo-500/20 bg-slate-900/80 p-4 text-sm text-indigo-100 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin" />
+            <span>
+              {bulkLoading
+                ? 'Uploading bulk products...'
+                : activeAction.type === 'submit'
+                ? 'Saving product...'
+                : activeAction.type === 'toggle'
+                ? 'Updating product status...'
+                : activeAction.type === 'delete'
+                ? 'Deleting product...'
+                : activeAction.type === 'bulk-delete'
+                ? 'Deleting selected products...'
+                : 'Processing...'}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Add Product Button */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -307,6 +423,20 @@ export default function AdminProducts() {
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            onClick={() => {
+              setForm(initialProductForm)
+              setEditingId(null)
+              setImageFile(null)
+              setShowForm(true)
+            }}
+            disabled={actionLoading || bulkLoading}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-900/95 px-6 py-3 text-sm font-semibold text-white transition hover:border-indigo-500 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus className="h-5 w-5" />
+            Add Product
+          </button>
           <label className="inline-flex cursor-pointer items-center gap-3 rounded-full border border-slate-600 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-white transition hover:border-indigo-500">
             <input
               type="file"
@@ -318,8 +448,8 @@ export default function AdminProducts() {
           </label>
           <button
             onClick={handleBulkUpload}
-            disabled={!bulkFile || bulkLoading}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 font-semibold text-white hover:from-indigo-700 hover:to-purple-700 transition shadow-lg shadow-indigo-500/20 disabled:opacity-50"
+            disabled={!bulkFile || bulkLoading || actionLoading}
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 font-semibold text-white hover:from-indigo-700 hover:to-purple-700 transition shadow-lg shadow-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="h-5 w-5" />
             Upload Bulk
@@ -329,7 +459,7 @@ export default function AdminProducts() {
       {bulkFile && (
         <div className="rounded-2xl border border-slate-700/30 bg-slate-900/60 p-4 text-sm text-slate-300">
           <p className="font-semibold text-slate-100">CSV format:</p>
-          <p className="mt-1">title,description,price,category,thumbnail,stock,brand,sku,isActive</p>
+          <p className="mt-1">title,description,price,mrp,discountedPrice,discountPercentage,unit,tagline,tags,category,thumbnail,stock,brand,sku,isActive</p>
           <p className="mt-2 text-slate-400">Category should be slug or title. Missing categories will be created automatically.</p>
           {bulkPreviewRows.length > 0 && (
             <div className="mt-3 rounded-lg bg-slate-950/70 p-3 text-xs text-slate-300">
@@ -443,6 +573,44 @@ export default function AdminProducts() {
                   />
                 </label>
                 <label className="block">
+                  <span className="text-sm font-semibold text-slate-300">MRP ($)</span>
+                  <input
+                    name="mrp"
+                    type="number"
+                    step="0.01"
+                    value={form.mrp}
+                    onChange={handleProductChange}
+                    className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                    placeholder="0.00"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-sm font-semibold text-slate-300">Discounted Price ($)</span>
+                  <input
+                    name="discountedPrice"
+                    type="number"
+                    step="0.01"
+                    value={form.discountedPrice}
+                    onChange={handleProductChange}
+                    className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                    placeholder="0.00"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-sm font-semibold text-slate-300">Discount (%)</span>
+                  <input
+                    name="discountPercentage"
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="100"
+                    value={form.discountPercentage}
+                    onChange={handleProductChange}
+                    className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                    placeholder="0"
+                  />
+                </label>
+                <label className="block">
                   <span className="text-sm font-semibold text-slate-300">Stock Quantity</span>
                   <input
                     name="stock"
@@ -452,6 +620,24 @@ export default function AdminProducts() {
                     className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
                     placeholder="0"
                   />
+                </label>
+                <label className="block">
+                  <span className="text-sm font-semibold text-slate-300">Unit</span>
+                  <select
+                    name="unit"
+                    value={form.unit}
+                    onChange={handleProductChange}
+                    className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                  >
+                    <option value="pcs">pcs</option>
+                    <option value="kg">kg</option>
+                    <option value="g">g</option>
+                    <option value="l">l</option>
+                    <option value="ml">ml</option>
+                    <option value="m">m</option>
+                    <option value="box">box</option>
+                    <option value="pack">pack</option>
+                  </select>
                 </label>
               </div>
             </div>
@@ -478,6 +664,26 @@ export default function AdminProducts() {
                     onChange={handleProductChange}
                     className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
                     placeholder="Product SKU"
+                  />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="text-sm font-semibold text-slate-300">Tagline</span>
+                  <input
+                    name="tagline"
+                    value={form.tagline}
+                    onChange={handleProductChange}
+                    className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                    placeholder="Short product tagline"
+                  />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="text-sm font-semibold text-slate-300">Tags</span>
+                  <input
+                    name="tags"
+                    value={form.tags}
+                    onChange={handleProductChange}
+                    className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                    placeholder="Comma-separated tags"
                   />
                 </label>
               </div>
@@ -554,15 +760,23 @@ export default function AdminProducts() {
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 font-semibold text-white hover:from-indigo-700 hover:to-purple-700 transition shadow-lg shadow-indigo-500/20"
+                disabled={actionLoading || bulkLoading}
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 font-semibold text-white hover:from-indigo-700 hover:to-purple-700 transition shadow-lg shadow-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <Plus className="h-4 w-4" />
-                {editingId ? 'Update Product' : 'Create Product'}
+                {actionLoading && activeAction.type === 'submit' ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Saving
+                  </span>
+                ) : (
+                  <><Plus className="h-4 w-4" />{editingId ? 'Update Product' : 'Create Product'}</>
+                )}
               </button>
               <button
                 type="button"
                 onClick={handleReset}
-                className="flex-1 rounded-lg border border-slate-600 px-6 py-3 font-semibold text-slate-300 hover:bg-slate-700/50 transition"
+                disabled={actionLoading || bulkLoading}
+                className="flex-1 rounded-lg border border-slate-600 px-6 py-3 font-semibold text-slate-300 hover:bg-slate-700/50 transition disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -592,9 +806,10 @@ export default function AdminProducts() {
             <span>{selectedProductIds.length} selected</span>
             <button
               onClick={handleDeleteSelectedProducts}
-              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+              disabled={actionLoading || bulkLoading}
+              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Delete Selected
+              {actionLoading && activeAction.type === 'bulk-delete' ? 'Deleting...' : 'Delete Selected'}
             </button>
             <button
               onClick={() => setSelectedProductIds([])}
@@ -612,111 +827,155 @@ export default function AdminProducts() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-700/50">
-                  <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    <input
-                      type="checkbox"
-                      checked={filteredProducts.length > 0 && filteredProducts.every((product) => selectedProductIds.includes(product.id || product._id))}
-                      onChange={handleSelectAllProducts}
-                      className="h-4 w-4 rounded border-slate-500 text-indigo-500"
-                    />
-                  </th>
-                  <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Product
-                  </th>
-                  <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Category
-                  </th>
-                  <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Price
-                  </th>
-                  <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Stock
-                  </th>
-                  <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700/50">
-                {filteredProducts.map((product) => {
-                  const productId = product.id || product._id
-                  return (
-                    <tr
-                      key={productId}
-                      className="hover:bg-slate-700/20 transition"
-                    >
-                      <td className="px-4 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedProductIds.includes(productId)}
-                          onChange={() => handleToggleSelectProduct(productId)}
-                          className="h-4 w-4 rounded border-slate-500 text-indigo-500"
-                        />
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          {product.thumbnail && (
-                          <img
-                            src={getImageUrl(product.thumbnail)}
-                            alt={product.title}
-                            className="h-10 w-10 rounded object-cover bg-slate-700"
-                          />
-                        )}
-                        <div>
-                          <p className="font-semibold text-white">{product.title}</p>
-                          <p className="text-xs text-slate-500">{product.sku || '—'}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="inline-block rounded-full bg-indigo-600/20 px-3 py-1 text-sm font-medium text-indigo-300">
-                        {product.category || 'Uncategorized'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 font-semibold text-white">${product.price?.toFixed(2)}</td>
-                    <td className="px-4 py-4">
-                      <span className={`font-semibold ${product.stock > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {product.stock ?? 0}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleToggleProduct(product.id || product._id)}
-                          className={`inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
-                            product.isActive ?? true
-                              ? 'border-green-600 bg-green-600/10 text-green-400 hover:bg-green-600/20'
-                              : 'border-gray-600 bg-gray-600/10 text-gray-400 hover:bg-gray-600/20'
-                          }`}
-                        >
-                          {product.isActive ?? true ? 'Active' : 'Inactive'}
-                        </button>
-                        <button
-                          onClick={() => handleEditProduct(product)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-indigo-600 bg-indigo-600/10 px-3 py-2 text-sm font-semibold text-indigo-400 hover:bg-indigo-600/20 transition"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProduct(product.id || product._id)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-red-600 bg-red-600/10 px-3 py-2 text-sm font-semibold text-red-400 hover:bg-red-600/20 transition"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+          <>
+            <div className="overflow-hidden rounded-3xl border border-slate-700/50 bg-slate-900">
+              <table className="min-w-full divide-y divide-slate-700">
+                <thead className="bg-slate-950">
+                  <tr>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                      <input
+                        type="checkbox"
+                        checked={filteredProducts.length > 0 && filteredProducts.every((product) => selectedProductIds.includes(product.id || product._id))}
+                        onChange={handleSelectAllProducts}
+                        className="h-4 w-4 rounded border-slate-500 text-indigo-500"
+                      />
+                    </th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Product</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Category</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Stock</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Price</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Status</th>
+                    <th className="px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Actions</th>
                   </tr>
-                )
-              })}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-700 bg-slate-900">
+                  {pageProducts.map((product) => {
+                    const productId = product.id || product._id
+                    return (
+                      <tr key={productId} className="hover:bg-slate-800/70 transition">
+                        <td className="px-4 py-4 align-top">
+                          <input
+                            type="checkbox"
+                            checked={selectedProductIds.includes(productId)}
+                            onChange={() => handleToggleSelectProduct(productId)}
+                            className="h-4 w-4 rounded border-slate-600 text-indigo-500"
+                          />
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          <div className="flex items-start gap-3">
+                            <div className="h-14 w-14 overflow-hidden rounded-2xl bg-slate-800">
+                              {product.thumbnail ? (
+                                <img src={getImageUrl(product.thumbnail)} alt={product.title} className="h-full w-full object-cover" />
+                              ) : (
+                                <div className="flex h-full items-center justify-center text-xs text-slate-500">No image</div>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-white">{product.title}</p>
+                              <p className="text-xs text-slate-500">{product.sku || 'No SKU'}</p>
+                              <p className="mt-1 text-xs text-slate-400 line-clamp-2">{product.tagline || product.unit || '—'}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          <span className="inline-flex rounded-full bg-indigo-600/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-indigo-200">
+                            {product.category || 'Uncategorized'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${product.stock > 0 ? 'bg-emerald-500/10 text-emerald-300' : 'bg-rose-500/10 text-rose-300'}`}>
+                            {product.stock ?? 0}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          <p className="font-semibold text-white">${product.price?.toFixed(2)}</p>
+                          {product.mrp > product.price && (
+                            <p className="text-xs text-slate-500 line-through">MRP ${product.mrp?.toFixed(2)}</p>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${product.isActive ?? true ? 'bg-emerald-500/10 text-emerald-200' : 'bg-slate-700 text-slate-300'}`}>
+                            {product.isActive ?? true ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-right align-top">
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <button
+                              onClick={() => handleToggleProduct(productId)}
+                              disabled={actionLoading || bulkLoading}
+                              className="inline-flex items-center gap-2 rounded-2xl border border-slate-600 bg-slate-800/10 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800/15 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {actionLoading && activeAction.type === 'toggle' && activeAction.id === productId ? (
+                                <span className="inline-flex items-center gap-2">
+                                  <span className="inline-flex h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                  {product.isActive ?? true ? 'Deactivating' : 'Activating'}
+                                </span>
+                              ) : product.isActive ?? true ? (
+                                'Deactivate'
+                              ) : (
+                                'Activate'
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleEditProduct(product)}
+                              disabled={actionLoading || bulkLoading}
+                              className="inline-flex items-center gap-2 rounded-2xl border border-indigo-600 bg-indigo-600/10 px-3 py-2 text-xs font-semibold text-indigo-200 hover:bg-indigo-600/15 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(productId)}
+                              disabled={actionLoading || bulkLoading}
+                              className="inline-flex items-center gap-2 rounded-2xl border border-red-600 bg-red-600/10 px-3 py-2 text-xs font-semibold text-red-200 hover:bg-red-600/15 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {filteredProducts.length > itemsPerPage && (
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-2xl border border-slate-600 bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setCurrentPage(index + 1)}
+                    className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                      currentPage === index + 1
+                        ? 'bg-indigo-600 text-white'
+                        : 'border border-slate-600 bg-slate-900 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                  className="rounded-2xl border border-slate-600 bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

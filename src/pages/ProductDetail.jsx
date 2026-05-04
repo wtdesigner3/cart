@@ -128,13 +128,22 @@ export default function ProductDetail() {
               <div>
                 <p className="text-sm uppercase tracking-[0.24em] text-indigo-600">{product.category}</p>
                 <h1 className="mt-3 text-3xl font-semibold text-slate-900">{product.title}</h1>
+                {product.tagline && <p className="mt-2 text-sm font-medium text-indigo-600">{product.tagline}</p>}
                 <p className="mt-4 text-sm leading-7 text-slate-600">{product.description}</p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-3xl border border-gray-200 bg-slate-50 p-5">
                   <p className="text-sm text-gray-500">Price</p>
-                  <p className="mt-2 text-3xl font-semibold text-slate-900">${product.price.toFixed(2)}</p>
+                  <div className="mt-2 flex items-baseline gap-3">
+                    <p className="text-3xl font-semibold text-slate-900">${product.price.toFixed(2)}</p>
+                    {product.mrp > product.price && (
+                      <p className="text-sm line-through text-slate-500">${product.mrp.toFixed(2)}</p>
+                    )}
+                  </div>
+                  {product.discountPercentage > 0 && (
+                    <p className="mt-2 text-sm text-green-600">Save {product.discountPercentage}%</p>
+                  )}
                 </div>
                 <div className="rounded-3xl border border-gray-200 bg-slate-50 p-5">
                   <p className="text-sm text-gray-500">Availability</p>
@@ -187,7 +196,11 @@ export default function ProductDetail() {
               <p><span className="font-semibold text-slate-900">Category:</span> {product.category}</p>
               <p><span className="font-semibold text-slate-900">Brand:</span> {product.brand || 'N/A'}</p>
               <p><span className="font-semibold text-slate-900">Stock:</span> {product.stock ?? 'N/A'}</p>
+              <p><span className="font-semibold text-slate-900">Unit:</span> {product.unit || 'pcs'}</p>
               <p><span className="font-semibold text-slate-900">Item code:</span> {product.id}</p>
+              {product.tags?.length > 0 && (
+                <p><span className="font-semibold text-slate-900">Tags:</span> {product.tags.join(', ')}</p>
+              )}
             </div>
           </div>
 
