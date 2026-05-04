@@ -114,39 +114,39 @@ const router = createBrowserRouter([
           },
         ],
       },
+    ],
+  },
+  {
+    path: 'admin',
+    element: <ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>,
+    children: [
       {
-        path: 'admin',
-        element: <ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>,
-        children: [
-          {
-            index: true,
-            element: <AdminDashboard />,
-          },
-          {
-            path: 'products',
-            element: <AdminProducts />,
-          },
-          {
-            path: 'categories',
-            element: <AdminCategories />,
-          },
-          {
-            path: 'banners',
-            element: <AdminBanners />,
-          },
-          {
-            path: 'carousel',
-            element: <AdminCarousel />,
-          },
-          {
-            path: 'orders',
-            element: <AdminOrders />,
-          },
-          {
-            path: 'users',
-            element: <AdminUsers />,
-          },
-        ],
+        index: true,
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'products',
+        element: <AdminProducts />,
+      },
+      {
+        path: 'categories',
+        element: <AdminCategories />,
+      },
+      {
+        path: 'banners',
+        element: <AdminBanners />,
+      },
+      {
+        path: 'carousel',
+        element: <AdminCarousel />,
+      },
+      {
+        path: 'orders',
+        element: <AdminOrders />,
+      },
+      {
+        path: 'users',
+        element: <AdminUsers />,
       },
     ],
   },

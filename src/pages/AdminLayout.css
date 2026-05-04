@@ -1,0 +1,134 @@
+/* Admin Layout Styles */
+
+/* Sidebar Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.2s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.2s ease-out;
+}
+
+/* Admin Sidebar */
+.admin-sidebar {
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Smooth transitions for all elements */
+.admin-sidebar * {
+  transition: opacity 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+/* Text truncation when collapsed */
+.admin-sidebar .whitespace-nowrap {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Icon centering when collapsed */
+.admin-sidebar button:not(:has(h1)),
+.admin-sidebar a {
+  position: relative;
+}
+
+/* Tooltip styles for collapsed state */
+.admin-sidebar button[title],
+.admin-sidebar a[title] {
+  position: relative;
+}
+
+/* Main content smooth transition */
+main {
+  transition: margin-left 0.3s ease-in-out;
+}
+
+/* Hover effect for nav items */
+.admin-sidebar button,
+.admin-sidebar a {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.admin-sidebar button:hover,
+.admin-sidebar a:hover {
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Active state styling */
+.admin-sidebar a.active-link {
+  position: relative;
+}
+
+/* Dropdown animations */
+.admin-sidebar [class*="animate-"] {
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    width: 16px; /* 64px / 4 = 16px (w-16) */
+    padding: 8px; /* p-2 */
+  }
+
+  .admin-sidebar.expanded {
+    width: 256px; /* w-64 */
+    padding: 24px; /* p-6 */
+  }
+}
+
+/* Smooth text visibility toggle */
+.admin-sidebar h1,
+.admin-sidebar .whitespace-nowrap {
+  transition: opacity 0.3s ease-in-out 0.1s;
+}
+
+.admin-sidebar:not(:hover) h1,
+.admin-sidebar:not(:hover) .whitespace-nowrap {
+  opacity: 0;
+}
+
+.admin-sidebar:hover h1,
+.admin-sidebar:hover .whitespace-nowrap {
+  opacity: 1;
+}
+
+/* Ensure icons are always visible */
+.admin-sidebar svg {
+  opacity: 1;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Chevron rotate animation */
+.admin-sidebar .rotate-180 {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Settings dropdown position fix */
+.admin-sidebar .bottom-20 {
+  position: absolute;
+  z-index: 100;
+}

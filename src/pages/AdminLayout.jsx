@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { ChevronDown, Home, Package, ShoppingCart, Users, ImageIcon, Gift, Zap, Search, Bell, Settings, LogOut } from 'lucide-react'
+import { ChevronDown, Home, Package, ShoppingCart, Users, Gift, Zap, Settings, LogOut } from 'lucide-react'
+import './AdminLayout.css'
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -9,8 +10,12 @@ function classNames(...classes) {
 
 export default function AdminLayout() {
   const userInfo = useSelector((state) => state.user.userInfo)
-  const location = useLocation()
+  const navigate = useNavigate()
   const [expandedMenu, setExpandedMenu] = useState(null)
+  const [showSettings, setShowSettings] = useState(false)
+  const [sidebarExpanded, setSidebarExpanded] = useState(false)
+  const settingsRef = useRef(null)
+  const sidebarRef = useRef(null)
 
   const menuItems = [
     { label: 'Dashboard', to: '/admin', icon: Home },
@@ -36,88 +41,112 @@ export default function AdminLayout() {
     { label: 'Discounts', to: '/admin/discounts', icon: Gift },
   ]
 
-  const teamMembers = [
-    { name: 'Cameron Williamson', initial: 'C', color: 'bg-blue-500' },
-    { name: 'Jenny Wilson', initial: 'J', color: 'bg-purple-500' },
-    { name: 'Leslie Alexander', initial: 'L', color: 'bg-pink-500' },
-  ]
-
-  const getBreadcrumbLabel = () => {
-    const breadcrumbMap = {
-      '/admin': 'Dashboard',
-      '/admin/products': "Product's",
-      '/admin/categories': 'Categories',
-      '/admin/banners': 'Banners',
-      '/admin/carousel': 'Product Carousel',
-      '/admin/orders': 'Orders',
-      '/admin/users': 'Customers',
-    }
-    return breadcrumbMap[location.pathname] || 'Dashboard'
-  }
-
   const toggleMenu = (label) => {
     setExpandedMenu(expandedMenu === label ? null : label)
+  }
+
+  // Handle click outside settings dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+        setShowSettings(false)
+      }
+    }
+
+    if (showSettings) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showSettings])
+
+  const handleLogout = () => {
+    // Dispatch logout action
+    localStorage.removeItem('token')
+    localStorage.removeItem('userInfo')
+    navigate('/login')
+    window.location.reload()
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex min-h-screen">
-        {/* Sidebar */}
-        <aside className="fixed left-0 top-0 h-screen w-64 border-r border-gray-200 bg-white p-6 overflow-y-auto">
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-lg">
-                W
-              </div>
-              <h1 className="text-lg font-bold text-gray-900">Admin</h1>
+        {/* Collapsible Sidebar */}
+        <aside 
+          ref={sidebarRef}
+          className={classNames(
+            'admin-sidebar fixed left-0 top-0 h-screen border-r border-gray-200 bg-white overflow-y-auto flex flex-col transition-all duration-300 ease-in-out z-50',
+            sidebarExpanded ? 'w-64 p-6' : 'w-20 p-2'
+          )}
+          onMouseEnter={() => setSidebarExpanded(true)}
+          onMouseLeave={() => setSidebarExpanded(false)}
+        >
+          {/* Logo Section */}
+          <div className={classNames(
+            'flex items-center gap-3 mb-8 transition-all duration-300',
+            sidebarExpanded ? 'justify-start' : 'justify-center'
+          )}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-lg flex-shrink-0">
+              W
             </div>
+            {sidebarExpanded && (
+              <h1 className="text-lg font-bold text-gray-900 whitespace-nowrap">Admin</h1>
+            )}
           </div>
 
-          <nav className="space-y-1 mb-8">
+          {/* Navigation */}
+          <nav className="space-y-1 mb-8 flex-1">
             {menuItems.map((item) => (
               <div key={item.label}>
                 {item.submenu ? (
                   <button
-                    onClick={() => toggleMenu(item.label)}
+                    onClick={() => sidebarExpanded && toggleMenu(item.label)}
+                    title={!sidebarExpanded ? item.label : ''}
                     className={classNames(
-                      expandedMenu === item.label
+                      expandedMenu === item.label && sidebarExpanded
                         ? 'bg-gray-100 text-gray-900'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                      'w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                      'w-full flex items-center justify-center lg:justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200',
+                      !sidebarExpanded && 'lg:px-2'
                     )}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className={classNames(
+                      'flex items-center gap-3 flex-shrink-0',
+                      !sidebarExpanded && 'justify-center'
+                    )}>
                       <item.icon className="h-5 w-5" />
-                      {item.label}
+                      {sidebarExpanded && item.label}
                     </div>
-                    <ChevronDown
-                      className={classNames(
-                        'h-4 w-4 transition-transform',
-                        expandedMenu === item.label ? 'rotate-180' : '',
-                      )}
-                    />
+                    {sidebarExpanded && (
+                      <ChevronDown
+                        className={classNames(
+                          'h-4 w-4 transition-transform duration-200',
+                          expandedMenu === item.label ? 'rotate-180' : '',
+                        )}
+                      />
+                    )}
                   </button>
                 ) : (
-                  <NavLink to={item.to} end={item.to === '/admin'}>
+                  <NavLink to={item.to} end={item.to === '/admin'} title={!sidebarExpanded ? item.label : ''}>
                     {({ isActive }) => (
                       <div
                         className={classNames(
                           isActive
                             ? 'bg-blue-50 text-blue-600 font-medium'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                          'flex items-center justify-center lg:justify-start gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200',
+                          !sidebarExpanded && 'lg:px-2'
                         )}
                       >
-                        <item.icon className="h-5 w-5" />
-                        {item.label}
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {sidebarExpanded && item.label}
                       </div>
                     )}
                   </NavLink>
                 )}
 
-                {/* Submenu */}
-                {item.submenu && expandedMenu === item.label && (
-                  <div className="mt-1 space-y-1 pl-2">
+                {/* Submenu - Only show when expanded */}
+                {item.submenu && expandedMenu === item.label && sidebarExpanded && (
+                  <div className="mt-1 space-y-1 pl-2 animate-slideDown">
                     {item.submenu.map((subitem) => (
                       <NavLink
                         key={subitem.to}
@@ -135,10 +164,10 @@ export default function AdminLayout() {
                               isActive
                                 ? 'bg-blue-50 text-blue-600 font-medium border-l-2 border-blue-600'
                                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-l-2 border-transparent',
-                              'flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium transition-colors',
+                              'flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium transition-colors duration-200',
                             )}
                           >
-                            <div className="h-1.5 w-1.5 rounded-full bg-current" />
+                            <div className="h-1.5 w-1.5 rounded-full bg-current flex-shrink-0" />
                             {subitem.label}
                           </div>
                         )}
@@ -150,75 +179,58 @@ export default function AdminLayout() {
             ))}
           </nav>
 
-          {/* Team Members Section */}
-          <div className="mb-8 border-t border-gray-200 pt-6">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Team Members</p>
-            <div className="space-y-3">
-              {teamMembers.map((member) => (
-                <div key={member.name} className="flex items-center gap-3">
-                  <div className={classNames(member.color, 'h-8 w-8 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0')}>
-                    {member.initial}
-                  </div>
-                  <span className="text-sm text-gray-700">{member.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Settings */}
-          <div className="border-t border-gray-200 pt-6">
-            <button className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
-              <Settings className="h-5 w-5" />
-              Settings
+          {/* Settings Dropdown */}
+          <div className="border-t border-gray-200 pt-4" ref={settingsRef}>
+            <button
+              onClick={() => sidebarExpanded && setShowSettings(!showSettings)}
+              onMouseEnter={() => !sidebarExpanded && setSidebarExpanded(true)}
+              title={!sidebarExpanded ? 'Settings' : ''}
+              className={classNames(
+                'w-full flex items-center justify-center lg:justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 relative',
+                !sidebarExpanded && 'lg:px-2'
+              )}
+            >
+              <Settings className="h-5 w-5 flex-shrink-0" />
+              {sidebarExpanded && (
+                <>
+                  Settings
+                  <ChevronDown className={classNames('h-4 w-4 ml-auto transition-transform duration-200', showSettings ? 'rotate-180' : '')} />
+                </>
+              )}
             </button>
+
+            {/* Settings Dropdown Menu - Only show when expanded */}
+            {showSettings && sidebarExpanded && (
+              <div className="absolute left-6 right-6 bottom-20 bg-white border border-gray-200 rounded-lg shadow-lg z-50 animate-slideUp">
+                <div className="p-3 space-y-1">
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Logged in as
+                  </div>
+                  <div className="px-3 py-2 text-sm font-medium text-gray-900">
+                    {userInfo?.name || 'Admin'}
+                  </div>
+                  <div className="px-3 py-1 text-xs text-gray-500">
+                    {userInfo?.email || ''}
+                  </div>
+                  <div className="my-2 border-t border-gray-200"></div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors duration-200"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </aside>
 
         {/* Main Content */}
-        <main className="ml-64 flex-1 overflow-auto">
-          {/* Header */}
-          <div className="sticky top-0 z-40 border-b border-gray-200 bg-white px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900">{getBreadcrumbLabel()}</h2>
-              </div>
-              <div className="flex items-center gap-4">
-                {/* Search Bar */}
-                <div className="hidden md:flex relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search anything..."
-                    className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:outline-none"
-                  />
-                </div>
-
-                {/* Time */}
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-semibold text-gray-900">15:55</p>
-                  <p className="text-xs text-gray-500">26 Feb</p>
-                </div>
-
-                {/* Notifications */}
-                <button className="relative rounded-lg p-2 hover:bg-gray-100 transition-colors">
-                  <Bell className="h-5 w-5 text-gray-600" />
-                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
-                </button>
-
-                {/* Settings Icon */}
-                <button className="rounded-lg p-2 hover:bg-gray-100 transition-colors">
-                  <Settings className="h-5 w-5 text-gray-600" />
-                </button>
-
-                {/* Profile Avatar */}
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                  {userInfo?.name?.charAt(0).toUpperCase() || 'A'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Page Content */}
+        <main className={classNames(
+          'flex-1 overflow-auto transition-all duration-300',
+          sidebarExpanded ? 'ml-64' : 'ml-20'
+        )}>
           <div className="p-8">
             <Outlet />
           </div>
