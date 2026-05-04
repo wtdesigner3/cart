@@ -54,8 +54,8 @@ router.post('/create-checkout-session', async (req, res, next) => {
       quantity: item.quantity ?? 1,
     }))
 
-    // const clientUrl = process.env.VITE_API_URL || process.env.VITE_API_URL || 'http://localhost:5173'
-    const clientUrl = process.env.VITE_API_URL || process.env.VITE_API_URL || 'https://cart-pied-tau.vercel.app/'
+    const requestOrigin = req.get('origin') || req.headers.origin
+    const clientUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || requestOrigin || 'http://localhost:5173'
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
