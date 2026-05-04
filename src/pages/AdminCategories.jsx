@@ -165,20 +165,20 @@ export default function AdminCategories() {
   return (
     <div className="space-y-6">
       {/* Form Section */}
-      <div className="rounded-2xl border border-slate-700/30 bg-gradient-to-br from-slate-800 to-slate-800/50 p-8 shadow-xl">
+      <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-2xl font-bold text-white">
+            <h3 className="text-2xl font-bold text-gray-900">
               {editingId ? 'Edit Category' : 'Create New Category'}
             </h3>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-gray-600">
               {editingId ? 'Update category details' : 'Add a new product category'}
             </p>
           </div>
           {showForm && (
             <button
               onClick={handleReset}
-              className="text-slate-400 hover:text-slate-200 transition"
+              className="text-gray-400 hover:text-gray-600 transition"
             >
               ✕
             </button>
@@ -189,70 +189,70 @@ export default function AdminCategories() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid gap-6 sm:grid-cols-2">
               <label className="block">
-                <span className="text-sm font-semibold text-slate-300">Category Name *</span>
+                <span className="text-sm font-semibold text-gray-700">Category Name *</span>
                 <input
                   name="title"
                   value={form.title}
                   onChange={handleChange}
                   required
-                  className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                   placeholder="e.g., Electronics"
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-semibold text-slate-300">Slug (auto-generated)</span>
+                <span className="text-sm font-semibold text-gray-700">Slug (auto-generated)</span>
                 <input
                   name="slug"
                   value={form.slug}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                   placeholder="Optional, auto-generated from title"
                 />
               </label>
             </div>
 
             <label className="block">
-              <span className="text-sm font-semibold text-slate-300">Tagline</span>
+              <span className="text-sm font-semibold text-gray-700">Tagline</span>
               <input
                 name="tagline"
                 value={form.tagline}
                 onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                 placeholder="Short category description"
               />
             </label>
 
             <label className="block">
-              <span className="text-sm font-semibold text-slate-300">Description</span>
+              <span className="text-sm font-semibold text-gray-700">Description</span>
               <textarea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
                 rows={4}
-                className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                 placeholder="Detailed description"
               />
             </label>
 
             <div className="grid gap-6 sm:grid-cols-2">
               <label className="block">
-                <span className="text-sm font-semibold text-slate-300">Category Image URL</span>
+                <span className="text-sm font-semibold text-gray-700">Category Image URL</span>
                 <input
                   name="image"
                   value={form.image}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                   placeholder="https://example.com/image.jpg"
                 />
               </label>
 
               <label className="block">
-                <span className="text-sm font-semibold text-slate-300">Or Upload Image</span>
+                <span className="text-sm font-semibold text-gray-700">Or Upload Image</span>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageSelect}
-                  className="mt-2 w-full text-sm text-slate-400 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-indigo-700"
+                  className="mt-2 w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700"
                 />
               </label>
             </div>
@@ -260,7 +260,7 @@ export default function AdminCategories() {
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
-                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 font-semibold text-white hover:from-indigo-700 hover:to-purple-700 transition shadow-lg shadow-indigo-500/20"
+                className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition shadow-sm"
               >
                 <Plus className="h-4 w-4" />
                 {editingId ? 'Update Category' : 'Create Category'}
@@ -268,7 +268,7 @@ export default function AdminCategories() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="rounded-lg border border-slate-600 px-6 py-3 font-semibold text-slate-300 hover:bg-slate-700/50 transition"
+                className="rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-900 hover:bg-gray-50 transition"
               >
                 Cancel
               </button>
@@ -277,7 +277,7 @@ export default function AdminCategories() {
         ) : (
           <button
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 font-semibold text-white hover:from-indigo-700 hover:to-purple-700 transition shadow-lg shadow-indigo-500/20"
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition shadow-sm"
           >
             <Plus className="h-5 w-5" />
             Add New Category
@@ -286,24 +286,24 @@ export default function AdminCategories() {
       </div>
 
       {/* Categories List */}
-      <div className="rounded-2xl border border-slate-700/30 bg-slate-800/30 backdrop-blur-sm p-8 shadow-xl">
+      <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
-            <h3 className="text-2xl font-bold text-white">All Categories ({categories.length})</h3>
+            <h3 className="text-2xl font-bold text-gray-900">All Categories ({categories.length})</h3>
             {categories.length > 0 && (
-              <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-300">
+              <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600">
                 <input
                   type="checkbox"
                   checked={categories.length > 0 && categories.every((category) => selectedCategoryIds.includes(category._id || category.id))}
                   onChange={handleSelectAllCategories}
-                  className="h-4 w-4 rounded border-slate-500 text-indigo-500"
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 Select All
               </label>
             )}
           </div>
           {selectedCategoryIds.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-700/50 bg-slate-900/70 p-4 text-sm text-slate-200">
+            <div className="flex flex-wrap items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
               <span>{selectedCategoryIds.length} selected</span>
               <button
                 onClick={handleDeleteSelectedCategories}
@@ -313,7 +313,7 @@ export default function AdminCategories() {
               </button>
               <button
                 onClick={() => setSelectedCategoryIds([])}
-                className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
+                className="rounded-lg border border-blue-300 px-4 py-2 text-sm font-semibold text-blue-900 transition hover:bg-blue-100"
               >
                 Clear Selection
               </button>
@@ -322,65 +322,65 @@ export default function AdminCategories() {
         </div>
 
         {categories.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-600 bg-slate-800/20 px-6 py-12 text-center">
-            <p className="text-slate-400">No categories yet. Create your first one!</p>
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center">
+            <p className="text-gray-600">No categories yet. Create your first one!</p>
           </div>
         ) : (
           <>
-            <div className="overflow-hidden rounded-3xl border border-slate-700/50 bg-slate-900">
-              <table className="min-w-full divide-y divide-slate-700">
-                <thead className="bg-slate-950">
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Select</th>
-                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Category</th>
-                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Description</th>
-                    <th className="px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Actions</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Select</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Category</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Description</th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-600">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700 bg-slate-900">
+                <tbody className="divide-y divide-gray-200 bg-white">
                   {pageCategories.map((category) => {
                     const categoryId = category._id || category.id
                     return (
-                      <tr key={categoryId} className="hover:bg-slate-800/70 transition">
-                        <td className="px-4 py-4 align-top">
+                      <tr key={categoryId} className="hover:bg-gray-50 transition">
+                        <td className="px-6 py-4 align-top">
                           <input
                             type="checkbox"
                             checked={selectedCategoryIds.includes(categoryId)}
                             onChange={() => handleToggleSelectCategory(categoryId)}
-                            className="h-4 w-4 rounded border-slate-600 text-indigo-500"
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           />
                         </td>
-                        <td className="px-4 py-4 align-top">
+                        <td className="px-6 py-4 align-top">
                           <div className="flex items-start gap-3">
-                            <div className="h-14 w-14 overflow-hidden rounded-2xl bg-slate-800">
+                            <div className="h-12 w-12 overflow-hidden rounded-lg bg-gray-100 flex-shrink-0">
                               {category.image ? (
                                 <img src={getImageUrl(category.image)} alt={category.title} className="h-full w-full object-cover" />
                               ) : (
-                                <div className="flex h-full items-center justify-center text-xs text-slate-500">No image</div>
+                                <div className="flex h-full items-center justify-center text-xs text-gray-400">No image</div>
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="font-semibold text-white">{category.title || 'Untitled category'}</p>
-                              <p className="mt-1 text-xs text-slate-500">{category.slug || 'No slug'}</p>
+                              <p className="font-semibold text-gray-900 truncate">{category.title || 'Untitled category'}</p>
+                              <p className="mt-1 text-xs text-gray-500">{category.slug || 'No slug'}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-4 align-top">
-                          <p className="font-semibold text-slate-200">{category.tagline || 'No tagline'}</p>
-                          <p className="mt-1 text-xs leading-5 text-slate-400 line-clamp-2">{category.description || 'No description provided.'}</p>
+                        <td className="px-6 py-4 align-top">
+                          <p className="font-semibold text-gray-900 text-sm">{category.tagline || 'No tagline'}</p>
+                          <p className="mt-1 text-xs leading-5 text-gray-600 line-clamp-2">{category.description || 'No description provided.'}</p>
                         </td>
-                        <td className="px-4 py-4 text-right align-top">
+                        <td className="px-6 py-4 text-right align-top">
                           <div className="inline-flex flex-wrap justify-end gap-2">
                             <button
                               onClick={() => handleEdit(category)}
-                              className="inline-flex items-center gap-2 rounded-2xl border border-indigo-600 bg-indigo-600/10 px-3 py-2 text-xs font-semibold text-indigo-200 hover:bg-indigo-600/15"
+                              className="inline-flex items-center gap-2 rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
                             >
                               <Edit2 className="h-3 w-3" />
                               Edit
                             </button>
                             <button
                               onClick={() => handleDelete(categoryId)}
-                              className="inline-flex items-center gap-2 rounded-2xl border border-red-600 bg-red-600/10 px-3 py-2 text-xs font-semibold text-red-200 hover:bg-red-600/15"
+                              className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition"
                             >
                               <Trash2 className="h-3 w-3" />
                               Delete
@@ -394,12 +394,12 @@ export default function AdminCategories() {
               </table>
             </div>
             {categories.length > itemsPerPage && (
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
                 <button
                   type="button"
                   onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                   disabled={currentPage === 1}
-                  className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Previous
                 </button>
@@ -408,10 +408,10 @@ export default function AdminCategories() {
                     key={index}
                     type="button"
                     onClick={() => setCurrentPage(index + 1)}
-                    className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                       currentPage === index + 1
-                        ? 'bg-indigo-600 text-white'
-                        : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50'
                     }`}
                   >
                     {index + 1}
@@ -421,7 +421,7 @@ export default function AdminCategories() {
                   type="button"
                   onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
                   disabled={currentPage === totalPages}
-                  className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Next
                 </button>
