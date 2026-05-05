@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
-import { Trash2, Edit2, Plus } from 'lucide-react'
+import { Trash2, Edit2, Plus, Search } from 'lucide-react'
 import api, { authHeaders, getImageUrl } from '../utils/api.js'
 import { parseCsv } from '../utils/csvParser.js'
 
@@ -21,26 +21,55 @@ export default function AdminBanners() {
   const [form, setForm] = useState(initialBannerForm)
   const [editingId, setEditingId] = useState(null)
   const [imageFile, setImageFile] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [bulkFile, setBulkFile] = useState(null)
   const [bulkErrors, setBulkErrors] = useState([])
   const [bulkLoading, setBulkLoading] = useState(false)
   const [bulkPreviewRows, setBulkPreviewRows] = useState([])
+  const [pageLoading, setPageLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [activeAction, setActiveAction] = useState({ type: '', id: null })
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 12
   const headers = authHeaders(token)
 
   const fetchBanners = async () => {
+    setPageLoading(true)
     try {
-      const res = await api.get('/banners/admin/all')
+      const res = await api.get('/banners/admin/all', headers)
       setBanners(res.data || [])
     } catch (error) {
-      // Silently ignore if endpoint doesn't exist yet
+      console.error('Failed to fetch banners:', error)
+      toast.error('Failed to load banners. Please check if you are logged in as admin.')
       setBanners([])
+    } finally {
+      setPageLoading(false)
     }
   }
 
   useEffect(() => {
     fetchBanners()
   }, [])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
+
+  const filteredBanners = useMemo(() => {
+    return banners.filter((banner) =>
+      banner.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      banner.subtitle?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [banners, searchTerm])
+
+  const paginatedBanners = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredBanners.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredBanners, currentPage])
+
+  const totalPages = Math.ceil(filteredBanners.length / itemsPerPage)
+
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target
@@ -84,27 +113,39 @@ export default function AdminBanners() {
 
   const handleDelete = async (bannerId) => {
     if (!window.confirm('Are you sure you want to delete this banner?')) return
+    setActionLoading(true)
+    setActiveAction({ type: 'delete', id: bannerId })
     try {
       await api.delete(`/banners/${bannerId}`, headers)
       fetchBanners()
       toast.success('Banner deleted successfully.')
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setActionLoading(false)
+      setActiveAction({ type: '', id: null })
     }
   }
 
   const handleToggle = async (bannerId) => {
+    setActionLoading(true)
+    setActiveAction({ type: 'toggle', id: bannerId })
     try {
       await api.patch(`/banners/${bannerId}/toggle`, {}, headers)
       fetchBanners()
       toast.success('Banner status updated successfully.')
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setActionLoading(false)
+      setActiveAction({ type: '', id: null })
     }
   }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    setActionLoading(true)
+    setActiveAction({ type: 'submit', id: editingId || null })
     try {
       const imageUrl = await uploadImage()
       const payload = {
@@ -127,6 +168,9 @@ export default function AdminBanners() {
       fetchBanners()
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setActionLoading(false)
+      setActiveAction({ type: '', id: null })
     }
   }
 
@@ -187,110 +231,100 @@ export default function AdminBanners() {
 
   return (
     <div className="space-y-6">
-      {/* Form Section */}
-      <div className="rounded-2xl border border-slate-700/30 bg-gradient-to-br from-slate-800 to-slate-800/50 p-8 shadow-xl">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <h3 className="text-2xl font-bold text-white">
-              {editingId ? 'Edit Banner' : 'Create New Banner'}
-            </h3>
-            <p className="mt-1 text-sm text-slate-400">
-              {editingId ? 'Update banner details' : 'Add a promotional banner for your homepage'}
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              📄 <a href="/sample-banners.csv" target="_blank" className="text-indigo-400 hover:text-indigo-300 underline">Download sample CSV</a> for bulk upload format
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <label className="inline-flex cursor-pointer items-center gap-3 rounded-full border border-slate-600 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-white transition hover:border-indigo-500">
-              <input
-                type="file"
-                accept=".csv"
-                className="hidden"
-                onChange={(event) => setBulkFile(event.target.files?.[0] || null)}
-              />
-              <span>{bulkFile ? bulkFile.name : 'Choose CSV file'}</span>
-            </label>
-            <button
-              onClick={handleBulkUpload}
-              disabled={!bulkFile || bulkLoading}
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3 font-semibold text-white hover:from-indigo-700 hover:to-purple-700 transition disabled:opacity-50"
-            >
-              <Plus className="h-5 w-5" />
-              Upload Bulk
-            </button>
+      {(actionLoading || bulkLoading) && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-700 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin" />
+            <span>
+              {bulkLoading
+                ? 'Uploading bulk banners...'
+                : activeAction.type === 'submit'
+                ? 'Saving banner...'
+                : activeAction.type === 'toggle'
+                ? 'Updating banner status...'
+                : activeAction.type === 'delete'
+                ? 'Deleting banner...'
+                : 'Processing...'}
+            </span>
           </div>
         </div>
-        {bulkFile && (
-          <div className="mt-5 rounded-2xl border border-slate-700/50 bg-slate-900/70 p-4 text-sm text-slate-300">
-            <p className="font-semibold text-slate-100">CSV format:</p>
-            <p className="mt-1">title,subtitle,image,link,buttonText,order,isActive</p>
-            <p className="mt-2 text-slate-400">Upload a CSV from Excel or Sheets, then press Upload Bulk.</p>
-            {bulkPreviewRows.length > 0 && (
-              <div className="mt-3 rounded-lg bg-slate-950/80 p-3 text-xs text-slate-300">
-                <p className="font-semibold">Preview rows:</p>
-                <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                  {bulkPreviewRows.slice(0, 3).map((row, index) => (
-                    <div key={index} className="rounded-lg bg-slate-900/80 p-3">
-                      <p className="text-slate-100">{row.title || '(no title)'}</p>
-                      <p className="text-slate-400">{row.image || '(no image)'}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {bulkErrors.length > 0 && (
-              <div className="mt-3 rounded-lg bg-rose-950/80 p-3 text-xs text-rose-200">
-                <p className="font-semibold">Errors:</p>
-                <ul className="mt-2 list-disc pl-5">
-                  {bulkErrors.map((error, index) => (
-                    <li key={index}>{error}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-        <div className="mt-8 flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-2xl font-bold text-white">
-              {editingId ? 'Edit Banner' : 'Create New Banner'}
-            </h3>
-            <p className="mt-1 text-sm text-slate-400">
-              {editingId ? 'Update banner details' : 'Add a promotional banner for your homepage'}
-            </p>
-          </div>
-          {showForm && (
-            <button
-              onClick={handleReset}
-              className="text-slate-400 hover:text-slate-200 transition"
-            >
-              ✕
-            </button>
-          )}
-        </div>
+      )}
 
-        {showForm ? (
+      {/* Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900">Banner Management</h3>
+          <p className="mt-1 text-sm text-gray-600">Upload banners in bulk using a CSV file for homepage hero slides.</p>
+          <p className="mt-1 text-xs text-gray-500">
+            📄 <a href="/sample-banners.csv" target="_blank" className="text-blue-600 hover:text-blue-700 underline">Download sample CSV</a> for bulk upload format
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            onClick={() => {
+              setForm(initialBannerForm)
+              setEditingId(null)
+              setImageFile(null)
+              setShowForm(true)
+            }}
+            disabled={actionLoading || bulkLoading}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus className="h-5 w-5" />
+            Add Banner
+          </button>
+          <label className="inline-flex cursor-pointer items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-50">
+            <input
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={(event) => setBulkFile(event.target.files?.[0] || null)}
+            />
+            <span>{bulkFile ? bulkFile.name : 'Choose CSV file'}</span>
+          </label>
+          <button
+            onClick={handleBulkUpload}
+            disabled={!bulkFile || bulkLoading || actionLoading}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus className="h-5 w-5" />
+            Upload Bulk
+          </button>
+        </div>
+      </div>
+      {/* Form Section */}
+      {showForm && (
+        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="mb-6">
+            <h3 className="text-2xl font-bold text-gray-900">
+              {editingId ? 'Edit Banner' : 'Add New Banner'}
+            </h3>
+            <p className="mt-1 text-sm text-gray-600">
+              {editingId ? 'Update banner details' : 'Fill in all the details below'}
+            </p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid gap-6 sm:grid-cols-2">
               <label className="block">
-                <span className="text-sm font-semibold text-slate-300">Banner Title *</span>
+                <span className="text-sm font-semibold text-gray-700">Banner Title *</span>
                 <input
                   name="title"
                   value={form.title}
                   onChange={handleChange}
                   required
-                  className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                   placeholder="e.g., Summer Sale"
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-semibold text-slate-300">Subtitle</span>
+                <span className="text-sm font-semibold text-gray-700">Subtitle</span>
                 <input
                   name="subtitle"
                   value={form.subtitle}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                   placeholder="e.g., Up to 50% off"
                 />
               </label>
@@ -298,22 +332,22 @@ export default function AdminBanners() {
 
             <div className="grid gap-6 sm:grid-cols-2">
               <label className="block">
-                <span className="text-sm font-semibold text-slate-300">Button Text</span>
+                <span className="text-sm font-semibold text-gray-700">Button Text</span>
                 <input
                   name="buttonText"
                   value={form.buttonText}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                   placeholder="e.g., Shop Now"
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-semibold text-slate-300">Button Link</span>
+                <span className="text-sm font-semibold text-gray-700">Button Link</span>
                 <input
                   name="link"
                   value={form.link}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                   placeholder="e.g., /shop/sale"
                 />
               </label>
@@ -321,35 +355,35 @@ export default function AdminBanners() {
 
             <div className="grid gap-6 sm:grid-cols-2">
               <label className="block">
-                <span className="text-sm font-semibold text-slate-300">Image URL</span>
+                <span className="text-sm font-semibold text-gray-700">Image URL</span>
                 <input
                   name="image"
                   value={form.image}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                   placeholder="https://example.com/banner.jpg"
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-semibold text-slate-300">Or Upload Image</span>
+                <span className="text-sm font-semibold text-gray-700">Or Upload Image</span>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageSelect}
-                  className="mt-2 w-full text-sm text-slate-400 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-indigo-700"
+                  className="mt-2 w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700"
                 />
               </label>
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2">
               <label className="block">
-                <span className="text-sm font-semibold text-slate-300">Display Order</span>
+                <span className="text-sm font-semibold text-gray-700">Display Order</span>
                 <input
                   name="order"
                   type="number"
                   value={form.order}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
+                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                   placeholder="0"
                 />
               </label>
@@ -359,15 +393,15 @@ export default function AdminBanners() {
                   type="checkbox"
                   checked={form.isActive}
                   onChange={handleChange}
-                  className="h-5 w-5 rounded border-slate-600 bg-slate-700/50 text-indigo-600 accent-indigo-600"
+                  className="rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-sm font-semibold text-slate-300">Active</span>
+                <span className="text-sm font-semibold text-gray-700">Active</span>
               </label>
             </div>
 
             {form.image && (
-              <div className="rounded-lg border border-slate-600 p-4">
-                <p className="text-sm font-semibold text-slate-300 mb-2">Preview</p>
+              <div className="rounded-lg border border-gray-200 p-4">
+                <p className="text-sm font-semibold text-gray-700 mb-2">Preview</p>
                 <img
                   src={getImageUrl(form.image)}
                   alt="Preview"
@@ -379,115 +413,180 @@ export default function AdminBanners() {
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
-                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 font-semibold text-white hover:from-indigo-700 hover:to-purple-700 transition shadow-lg shadow-indigo-500/20"
+                disabled={actionLoading || bulkLoading}
+                className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <Plus className="h-4 w-4" />
-                {editingId ? 'Update Banner' : 'Create Banner'}
+                {actionLoading && activeAction.type === 'submit' ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Saving
+                  </span>
+                ) : (
+                  <><Plus className="h-4 w-4" />{editingId ? 'Update Banner' : 'Create Banner'}</>
+                )}
               </button>
               <button
                 type="button"
                 onClick={handleReset}
-                className="rounded-lg border border-slate-600 px-6 py-3 font-semibold text-slate-300 hover:bg-slate-700/50 transition"
+                className="rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-gray-50 transition"
               >
                 Cancel
               </button>
             </div>
           </form>
-        ) : (
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 font-semibold text-white hover:from-indigo-700 hover:to-purple-700 transition shadow-lg shadow-indigo-500/20"
-          >
-            <Plus className="h-5 w-5" />
-            Add New Banner
-          </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Banners List */}
-      <div className="rounded-2xl border border-slate-700/30 bg-slate-800/30 backdrop-blur-sm p-8 shadow-xl">
-        <h3 className="text-2xl font-bold text-white mb-6">All Banners ({banners.length})</h3>
+      <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900">All Banners ({filteredBanners.length})</h3>
+            <p className="mt-1 text-sm text-gray-600">Manage your homepage banner slides</p>
+          </div>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search banners..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white py-3 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:w-80"
+            />
+          </div>
+        </div>
 
-        {banners.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-600 bg-slate-800/20 px-6 py-12 text-center">
-            <p className="text-slate-400">No banners yet. Create your first promotional banner!</p>
+        {pageLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="inline-flex items-center gap-3">
+              <span className="inline-flex h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+              <span className="text-sm text-gray-600">Loading banners...</span>
+            </div>
+          </div>
+        ) : paginatedBanners.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center">
+            <p className="text-gray-500">
+              {searchTerm ? 'No banners match your search.' : 'No banners yet. Create your first promotional banner!'}
+            </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {banners
-              .sort((a, b) => (a.order || 0) - (b.order || 0))
-              .map((banner) => (
-                <div
-                  key={banner._id || banner.id}
-                  className="rounded-lg border border-slate-700/50 bg-slate-700/20 p-4 hover:border-slate-600 hover:bg-slate-700/30 transition"
-                >
-                  <div className="grid gap-4 md:grid-cols-[200px_1fr_100px]">
-                    {banner.image && (
-                      <img
-                        src={getImageUrl(banner.image)}
-                        alt={banner.title}
-                        className="h-32 w-full rounded-lg object-cover bg-slate-800 md:w-40"
-                      />
-                    )}
-                    <div>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="text-lg font-bold text-white">{banner.title}</h4>
-                          {banner.subtitle && (
-                            <p className="mt-1 text-sm text-indigo-400">{banner.subtitle}</p>
-                          )}
-                          {banner.buttonText && (
-                            <p className="mt-2 text-sm text-slate-400">
-                              Button: <span className="text-slate-300">{banner.buttonText}</span>
-                            </p>
-                          )}
-                          {banner.link && (
-                            <p className="mt-1 text-sm text-slate-500">Link: {banner.link}</p>
-                          )}
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {paginatedBanners
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                .map((banner) => (
+                  <div
+                    key={banner._id || banner.id}
+                    className="rounded-lg border border-gray-200 bg-white p-4 hover:border-gray-300 hover:shadow-sm transition"
+                  >
+                    <div className="grid gap-4 md:grid-cols-[160px_minmax(0,1fr)] items-start">
+                      {banner.image && (
+                        <div className="h-40 min-h-[160px] overflow-hidden rounded-lg bg-gray-100">
+                          <img
+                            src={getImageUrl(banner.image)}
+                            alt={banner.title}
+                            className="h-full w-full object-cover"
+                          />
                         </div>
-                        <div className="flex gap-2 flex-shrink-0">
-                          {banner.isActive ? (
-                            <span className="inline-block rounded-full bg-green-600/20 px-3 py-1 text-xs font-semibold text-green-400">
-                              Active
-                            </span>
-                          ) : (
-                            <span className="inline-block rounded-full bg-slate-600/20 px-3 py-1 text-xs font-semibold text-slate-400">
-                              Inactive
-                            </span>
-                          )}
+                      )}
+                      <div className="space-y-2 min-w-0">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-lg font-bold text-gray-900 truncate">{banner.title}</h4>
+                            {banner.subtitle && (
+                              <p className="mt-1 text-sm text-blue-600 truncate">{banner.subtitle}</p>
+                            )}
+                            {banner.buttonText && (
+                              <p className="mt-2 text-sm text-gray-600">
+                                Button: <span className="text-gray-900">{banner.buttonText}</span>
+                              </p>
+                            )}
+                            {banner.link && (
+                              <p className="mt-1 text-sm text-gray-500 truncate">Link: {banner.link}</p>
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-2 flex-shrink-0">
+                            {banner.isActive ? (
+                              <span className="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
+                                Active
+                              </span>
+                            ) : (
+                              <span className="inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
+                                Inactive
+                              </span>
+                            )}
+                          </div>
                         </div>
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={() => handleToggle(banner._id || banner.id)}
+                          disabled={actionLoading || bulkLoading}
+                          className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                            banner.isActive
+                              ? 'border-green-300 bg-green-50 text-green-700 hover:bg-green-100'
+                              : 'border-gray-300 bg-gray-50 text-gray-700 hover:bg-gray-100'
+                          } disabled:cursor-not-allowed disabled:opacity-50`}
+                        >
+                          {banner.isActive ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button
+                          onClick={() => handleEdit(banner)}
+                          disabled={actionLoading || bulkLoading}
+                          className="flex items-center justify-center gap-2 rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(banner._id || banner.id)}
+                          disabled={actionLoading || bulkLoading}
+                          className="flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </button>
                       </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={() => handleToggle(banner._id || banner.id)}
-                        className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
-                          banner.isActive
-                            ? 'border-green-600 bg-green-600/10 text-green-400 hover:bg-green-600/20'
-                            : 'border-gray-600 bg-gray-600/10 text-gray-400 hover:bg-gray-600/20'
-                        }`}
-                      >
-                        {banner.isActive ? 'Deactivate' : 'Activate'}
-                      </button>
-                      <button
-                        onClick={() => handleEdit(banner)}
-                        className="flex items-center justify-center gap-2 rounded-lg border border-indigo-600 bg-indigo-600/10 px-3 py-2 text-sm font-semibold text-indigo-400 hover:bg-indigo-600/20 transition"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(banner._id || banner.id)}
-                        className="flex items-center justify-center gap-2 rounded-lg border border-red-600 bg-red-600/10 px-3 py-2 text-sm font-semibold text-red-400 hover:bg-red-600/20 transition"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete
-                      </button>
                     </div>
                   </div>
                 </div>
-              ))}
-          </div>
+                ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setCurrentPage(index + 1)}
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                      currentPage === index + 1
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

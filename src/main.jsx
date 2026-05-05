@@ -25,6 +25,7 @@ import AdminProducts from './pages/AdminProducts.jsx'
 import AdminCategories from './pages/AdminCategories.jsx'
 import AdminBanners from './pages/AdminBanners.jsx'
 import AdminCarousel from './pages/AdminCarousel.jsx'
+import AdminHomepageContent from './pages/AdminHomepageContent.jsx'
 import AdminOrders from './pages/AdminOrders.jsx'
 import AdminOrderDetail from './pages/AdminOrderDetail.jsx'
 import AdminUsers from './pages/AdminUsers.jsx'
@@ -145,6 +146,10 @@ const router = createBrowserRouter([
       {
         path: 'carousel',
         element: <AdminCarousel />,
+      },
+      {
+        path: 'homepage',
+        element: <AdminHomepageContent />,
       },
       {
         path: 'orders',

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { ChevronDown, Home, Package, ShoppingCart, Users, Settings, LogOut, ExternalLink } from 'lucide-react'
+import { ChevronDown, Home, LayoutGrid, Package, ShoppingCart, Users, Settings, LogOut, ExternalLink } from 'lucide-react'
 import './AdminLayout.css'
 
 function classNames(...classes) {
@@ -19,6 +19,13 @@ export default function AdminLayout() {
 
   const menuItems = [
     { label: 'Dashboard', to: '/admin', icon: Home },
+    {
+      label: 'Homepage',
+      icon: LayoutGrid,
+      submenu: [
+        { label: 'Banner Section', to: '/admin/banners' },
+      ],
+    },
     { label: 'Orders', to: '/admin/orders', icon: ShoppingCart },
     {
       label: 'Products',

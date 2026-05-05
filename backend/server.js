@@ -14,6 +14,7 @@ import categoryRoutes from './routes/categoryRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
 import bannerRoutes from './routes/bannerRoutes.js'
 import carouselRoutes from './routes/carouselRoutes.js'
+import homepageRoutes from './routes/homepageRoutes.js'
 import trackcourierRoutes from './routes/trackcourierRoutes.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 
@@ -37,6 +38,7 @@ app.use('/api/categories', categoryRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/banners', bannerRoutes)
 app.use('/api/carousel', carouselRoutes)
+app.use('/api/homepage', homepageRoutes)
 app.use('/api/cart', cartRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/payments', paymentRoutes)
