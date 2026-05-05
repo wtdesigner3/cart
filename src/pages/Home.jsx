@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 import useEmblaCarousel from 'embla-carousel-react'
-import { ArrowLeft, ArrowRight, Heart } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ShoppingCart } from 'lucide-react'
 import api, { getImageUrl } from '../utils/api.js'
+import { addCartItem } from '../features/cartadd/cartSlice.js'
 import Loader from '../components/Loader.jsx'
 
 function CarouselHero({ slides }) {
@@ -62,9 +64,19 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('Best Seller')
 
   const [flashEmblaRef, flashEmblaApi] = useEmblaCarousel({ loop: false, align: 'start', containScroll: 'trimSnaps' })
+  const [categoryEmblaRef, categoryEmblaApi] = useEmblaCarousel({ loop: false, align: 'start', containScroll: 'trimSnaps' })
+
+  const dispatch = useDispatch()
 
   const scrollPrev = () => flashEmblaApi && flashEmblaApi.scrollPrev()
   const scrollNext = () => flashEmblaApi && flashEmblaApi.scrollNext()
+  const scrollCategoryPrev = () => categoryEmblaApi && categoryEmblaApi.scrollPrev()
+  const scrollCategoryNext = () => categoryEmblaApi && categoryEmblaApi.scrollNext()
+
+  const handleAddToCart = (product) => {
+    const item = { ...product, id: product.id || product._id }
+    dispatch(addCartItem(item))
+  }
 
   useEffect(() => {
     const loadHomeData = async () => {
@@ -226,19 +238,43 @@ export default function Home() {
                 View all categories →
               </Link>
             </div>
-            <div className="mt-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 scrollbar-none">
-              {categories.slice(0, 9).map((category) => (
-                <Link
-                  key={category.slug}
-                  to={`/category/${category.slug}`}
-                  className="snap-start min-w-[140px] shrink-0 rounded-[28px] border border-slate-200 bg-slate-50 p-5 text-center transition hover:-translate-y-1 hover:shadow-xl"
+            <div className="mt-4 overflow-hidden rounded-[28px] border border-slate-200 bg-slate-50">
+              <div className="embla" ref={categoryEmblaRef}>
+                <div className="flex gap-4 p-4">
+                  {categories.slice(0, 9).map((category) => (
+                    <Link
+                      key={category.slug}
+                      to={`/category/${category.slug}`}
+                      className="min-w-[220px] flex-shrink-0 overflow-hidden rounded-[28px] border border-slate-200 bg-white p-5 text-center transition hover:-translate-y-1 hover:shadow-xl"
+                    >
+                      <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-xl font-semibold text-slate-700">
+                        {category.image ? (
+                          <img src={getImageUrl(category.image)} alt={category.title} className="h-full w-full object-cover" />
+                        ) : (
+                          <span className="uppercase">{category.title?.charAt(0) || 'C'}</span>
+                        )}
+                      </div>
+                      <p className="text-sm font-semibold text-slate-900">{category.title}</p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-2 flex justify-end gap-3 px-4 pb-4">
+                <button
+                  onClick={scrollCategoryPrev}
+                  type="button"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-xl font-semibold text-slate-700">
-                    {category.title?.charAt(0).toUpperCase() || 'C'}
-                  </div>
-                  <p className="text-sm font-semibold text-slate-900">{category.title}</p>
-                </Link>
-              ))}
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={scrollCategoryNext}
+                  type="button"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -352,8 +388,15 @@ export default function Home() {
             >
               <div className="relative overflow-hidden bg-slate-100">
                 <img src={getImageUrl(product.thumbnail)} alt={product.title} className="h-56 w-full object-cover transition duration-300 group-hover:scale-105" />
-                <button className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm transition hover:bg-white">
-                  <Heart className="h-5 w-5" />
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handleAddToCart(product)
+                  }}
+                  className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm transition hover:bg-white"
+                >
+                  <ShoppingCart className="h-5 w-5" />
                 </button>
               </div>
               <div className="space-y-3 p-5">
