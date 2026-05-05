@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { Link } from 'react-router-dom'
 import Loader from '../components/Loader.jsx'
 import OrderTrackingPanel from '../components/OrderTrackingPanel.jsx'
 import { fetchOrders } from '../features/order/orderSlice.js'
@@ -65,6 +66,19 @@ export default function OrderHistory() {
                 </div>
 
                 <OrderTrackingPanel order={order} />
+
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">View the full order page</p>
+                    <p className="text-sm text-gray-500">Click here to open the order detail view.</p>
+                  </div>
+                  <Link
+                    to={`/orders/${order._id}`}
+                    className="rounded-2xl border border-indigo-600 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+                  >
+                    View details
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

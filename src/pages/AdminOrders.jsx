@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
 import api, { authHeaders } from '../utils/api.js'
@@ -139,6 +140,16 @@ export default function AdminOrders() {
                   {statusOption.charAt(0).toUpperCase() + statusOption.slice(1)}
                 </button>
               ))}
+            </div>
+
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <Link
+                to={`/admin/orders/${order._id}`}
+                className="rounded-2xl border border-indigo-600 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+              >
+                View order details
+              </Link>
+              <p className="text-sm text-gray-600">Click to open the full order detail page.</p>
             </div>
 
             <div className="mt-6 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 p-4">

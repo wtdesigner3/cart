@@ -117,6 +117,19 @@ export default function UserOrders() {
                   </ul>
                 </div>
 
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Order actions</p>
+                    <p className="text-sm text-gray-500">Open the full order detail page for tracking and invoice.</p>
+                  </div>
+                  <Link
+                    to={`/orders/${order._id}`}
+                    className="rounded-2xl border border-indigo-600 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+                  >
+                    View details
+                  </Link>
+                </div>
+
                 <div className="space-y-4">
                   <OrderTrackingPanel order={order} />
 

@@ -5,14 +5,24 @@ import api from '../../utils/api.js'
 const userInfoFromStorage = JSON.parse(localStorage.getItem('userInfo') || 'null')
 const tokenFromStorage = localStorage.getItem('token') || null
 
-export const login = createAsyncThunk('user/login', async ({ email, password, redirectFrom }) => {
-  const response = await api.post('/auth/login', { email, password })
-  return { ...response.data, redirectFrom }
+export const login = createAsyncThunk('user/login', async ({ email, password, redirectFrom }, { rejectWithValue }) => {
+  try {
+    const response = await api.post('/auth/login', { email, password })
+    return { ...response.data, redirectFrom }
+  } catch (error) {
+    const message = error.response?.data?.message || error.message || 'Login failed'
+    return rejectWithValue({ message })
+  }
 })
 
-export const register = createAsyncThunk('user/register', async ({ name, email, password, redirectFrom }) => {
-  const response = await api.post('/auth/register', { name, email, password })
-  return { ...response.data, redirectFrom }
+export const register = createAsyncThunk('user/register', async ({ name, email, password, redirectFrom }, { rejectWithValue }) => {
+  try {
+    const response = await api.post('/auth/register', { name, email, password })
+    return { ...response.data, redirectFrom }
+  } catch (error) {
+    const message = error.response?.data?.message || error.message || 'Registration failed'
+    return rejectWithValue({ message })
+  }
 })
 
 export const fetchAddresses = createAsyncThunk('user/fetchAddresses', async (_, { getState }) => {
@@ -91,8 +101,8 @@ const userSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.status = 'failed'
-        state.error = action.error.message
-        toast.error(action.error.message || 'Login failed. Please check your credentials.')
+        state.error = action.payload?.message || action.error.message
+        toast.error(action.payload?.message || action.error.message || 'Login failed. Please check your credentials.')
       })
       .addCase(register.pending, (state) => {
         state.status = 'loading'
@@ -112,8 +122,8 @@ const userSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.status = 'failed'
-        state.error = action.error.message
-        toast.error(action.error.message || 'Registration failed. Please try again.')
+        state.error = action.payload?.message || action.error.message
+        toast.error(action.payload?.message || action.error.message || 'Registration failed. Please try again.')
       })
       .addCase(fetchAddresses.fulfilled, (state, action) => {
         state.addresses = action.payload
