@@ -14,6 +14,7 @@ import categoryRoutes from './routes/categoryRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
 import bannerRoutes from './routes/bannerRoutes.js'
 import carouselRoutes from './routes/carouselRoutes.js'
+import trackcourierRoutes from './routes/trackcourierRoutes.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 
 connectDB()
@@ -39,6 +40,7 @@ app.use('/api/carousel', carouselRoutes)
 app.use('/api/cart', cartRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/payments', paymentRoutes)
+app.use('/api/trackcourier', trackcourierRoutes)
 app.use('/api/auth', authRoutes)
 
 app.get('/', (req, res) => {

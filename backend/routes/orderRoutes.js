@@ -15,12 +15,16 @@ router.get('/', protect, async (req, res, next) => {
   }
 })
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', protect, async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id)
     if (!order) {
       res.status(404)
       throw new Error('Order not found')
+    }
+    if (req.user.email !== order.email && !req.user.isAdmin) {
+      res.status(403)
+      throw new Error('Not authorized to view this order')
     }
     res.json(order)
   } catch (error) {
@@ -28,9 +32,51 @@ router.get('/:id', async (req, res, next) => {
   }
 })
 
+router.get('/:id/track', protect, async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id)
+    if (!order) {
+      res.status(404)
+      throw new Error('Order not found')
+    }
+    if (req.user.email !== order.email && !req.user.isAdmin) {
+      res.status(403)
+      throw new Error('Not authorized to view this order')
+    }
+    if (!order.courier || !order.trackingNumber) {
+      res.status(400)
+      throw new Error('Tracking information is not available for this order')
+    }
+
+    const apiKey = process.env.TRACKCOURIER_API_KEY
+    if (!apiKey) {
+      res.status(500)
+      throw new Error('TrackCourier API key is not configured on the server')
+    }
+
+    const url = `https://api.trackcourier.io/v1/track?courier=${encodeURIComponent(order.courier)}&tracking_number=${encodeURIComponent(order.trackingNumber)}`
+    const response = await fetch(url, {
+      headers: {
+        'X-API-Key': apiKey,
+        Accept: 'application/json',
+      },
+    })
+    const result = await response.json()
+
+    if (!response.ok || result.success === false) {
+      res.status(response.status || 502)
+      throw new Error(result.error?.message || 'Failed to fetch live tracking from TrackCourier')
+    }
+
+    res.json({ success: true, tracking: result.data, usage: result.usage })
+  } catch (error) {
+    next(error)
+  }
+})
+
 router.post('/', async (req, res, next) => {
   try {
-    const { customerName, email, address, city, country, postalCode, items, total } = req.body
+    const { customerName, email, address, city, country, postalCode, items, total, trackingNumber, courier } = req.body
     const order = new Order({
       customerName,
       email,
@@ -42,6 +88,8 @@ router.post('/', async (req, res, next) => {
       total,
       status: 'pending',
       paymentStatus: 'pending',
+      trackingNumber,
+      courier,
     })
     const createdOrder = await order.save()
     res.status(201).json(createdOrder)
@@ -59,6 +107,8 @@ router.put('/:id', protect, admin, async (req, res, next) => {
     }
     order.status = req.body.status ?? order.status
     order.paymentStatus = req.body.paymentStatus ?? order.paymentStatus
+    order.trackingNumber = req.body.trackingNumber ?? order.trackingNumber
+    order.courier = req.body.courier ?? order.courier
     const updatedOrder = await order.save()
     res.json(updatedOrder)
   } catch (error) {

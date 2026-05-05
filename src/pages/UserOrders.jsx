@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import api, { authHeaders } from '../utils/api.js'
 import Loader from '../components/Loader.jsx'
+import OrderTrackingPanel from '../components/OrderTrackingPanel.jsx'
 
 export default function UserOrders() {
   const token = useSelector((state) => state.user.token)
@@ -116,13 +117,17 @@ export default function UserOrders() {
                   </ul>
                 </div>
 
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => handleDownloadInvoice(order._id)}
-                    className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
-                  >
-                    Download Invoice
-                  </button>
+                <div className="space-y-4">
+                  <OrderTrackingPanel order={order} />
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => handleDownloadInvoice(order._id)}
+                      className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                    >
+                      Download Invoice
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

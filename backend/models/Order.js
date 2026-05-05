@@ -21,6 +21,8 @@ const orderSchema = new mongoose.Schema(
     status: { type: String, default: 'pending' },
     paymentStatus: { type: String, default: 'pending' },
     stripeSessionId: String,
+    trackingNumber: String,
+    courier: String,
   },
   { timestamps: true },
 )

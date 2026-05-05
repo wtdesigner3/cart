@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import Loader from '../components/Loader.jsx'
+import OrderTrackingPanel from '../components/OrderTrackingPanel.jsx'
 import { fetchOrders } from '../features/order/orderSlice.js'
 
 export default function OrderHistory() {
@@ -47,8 +48,8 @@ export default function OrderHistory() {
               <div className="mt-6 space-y-4">
                 <div className="rounded-2xl bg-gray-50 p-4">
                   <p className="text-sm font-semibold text-gray-800">Shipping information</p>
-                  <p className="text-sm text-gray-700">{order.shippingInfo?.address}</p>
-                  <p className="text-sm text-gray-700">{order.shippingInfo?.city}, {order.shippingInfo?.postalCode}</p>
+                  <p className="text-sm text-gray-700">{order.shippingInfo?.address || order.address}</p>
+                  <p className="text-sm text-gray-700">{order.shippingInfo?.city || order.city}, {order.shippingInfo?.postalCode || order.postalCode}</p>
                 </div>
 
                 <div className="rounded-2xl bg-gray-50 p-4">
@@ -62,6 +63,8 @@ export default function OrderHistory() {
                     ))}
                   </ul>
                 </div>
+
+                <OrderTrackingPanel order={order} />
               </div>
             </div>
           ))}

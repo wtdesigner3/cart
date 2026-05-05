@@ -8,14 +8,30 @@ const statusOptions = ['pending', 'processing', 'shipped', 'completed']
 export default function AdminOrders() {
   const token = useSelector((state) => state.user.token)
   const [orders, setOrders] = useState([])
+  const [trackingInputs, setTrackingInputs] = useState({})
+  const [couriers, setCouriers] = useState([])
+  const [loadingCouriers, setLoadingCouriers] = useState(true)
 
   const headers = authHeaders(token)
 
   useEffect(() => {
     if (token) {
       fetchOrders()
+      fetchCouriers()
     }
   }, [token])
+
+  const fetchCouriers = async () => {
+    setLoadingCouriers(true)
+    try {
+      const response = await api.get('/trackcourier/couriers', headers)
+      setCouriers(response.data.couriers || [])
+    } catch (error) {
+      toast.error('Unable to load TrackCourier courier list.')
+    } finally {
+      setLoadingCouriers(false)
+    }
+  }
 
   const fetchOrders = async () => {
     try {
@@ -30,6 +46,40 @@ export default function AdminOrders() {
     try {
       await api.put(`/orders/${orderId}`, { status }, headers)
       toast.success('Order status updated.')
+      fetchOrders()
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message)
+    }
+  }
+
+  const handleTrackingInput = (orderId, field, value) => {
+    setTrackingInputs((prev) => ({
+      ...prev,
+      [orderId]: {
+        ...prev[orderId],
+        [field]: value,
+      },
+    }))
+  }
+
+  const updateTracking = async (orderId) => {
+    const order = orders.find((item) => item._id === orderId)
+    const inputs = trackingInputs[orderId] || {}
+    const courier = inputs.courier?.trim() ?? order?.courier
+    const trackingNumber = inputs.trackingNumber?.trim() ?? order?.trackingNumber
+
+    if (!courier || !trackingNumber) {
+      toast.error('Please provide both courier slug and tracking number.')
+      return
+    }
+
+    try {
+      await api.put(
+        `/orders/${orderId}`,
+        { courier, trackingNumber },
+        headers,
+      )
+      toast.success('Tracking information updated.')
       fetchOrders()
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
@@ -101,6 +151,74 @@ export default function AdminOrders() {
                   </li>
                 ))}
               </ul>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-4">
+              <h2 className="text-sm font-semibold text-gray-900">Tracking details</h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <label className="block">
+                  <span className="text-sm text-gray-600">Courier</span>
+                  {loadingCouriers ? (
+                    <div className="mt-2 rounded-2xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                      Loading courier list...
+                    </div>
+                  ) : couriers.length ? (
+                    <>
+                      <select
+                        value={trackingInputs[order._id]?.courier ?? order.courier ?? ''}
+                        onChange={(e) => handleTrackingInput(order._id, 'courier', e.target.value)}
+                        className="mt-2 w-full rounded-2xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none"
+                      >
+                        <option value="" disabled>Select courier</option>
+                        {couriers.map((courier) => (
+                          <option key={courier.slug} value={courier.slug}>
+                            {courier.name} ({courier.slug})
+                          </option>
+                        ))}
+                        {trackingInputs[order._id]?.courier && !couriers.some((courier) => courier.slug === trackingInputs[order._id]?.courier) && (
+                          <option value={trackingInputs[order._id].courier}>{trackingInputs[order._id].courier} (current)</option>
+                        )}
+                        {!trackingInputs[order._id]?.courier && order.courier && !couriers.some((courier) => courier.slug === order.courier) && (
+                          <option value={order.courier}>{order.courier} (current)</option>
+                        )}
+                      </select>
+                      <p className="mt-2 text-xs text-gray-500">
+                        Select the courier name and slug for this shipment. The dropdown is loaded from TrackCourier.
+                      </p>
+                    </>
+                  ) : (
+                    <input
+                      value={trackingInputs[order._id]?.courier ?? order.courier ?? ''}
+                      onChange={(e) => handleTrackingInput(order._id, 'courier', e.target.value)}
+                      placeholder="e.g. delhivery"
+                      className="mt-2 w-full rounded-2xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none"
+                    />
+                  )}
+                </label>
+                <label className="block">
+                  <span className="text-sm text-gray-600">Tracking number</span>
+                  <input
+                    value={trackingInputs[order._id]?.trackingNumber ?? order.trackingNumber ?? ''}
+                    onChange={(e) => handleTrackingInput(order._id, 'trackingNumber', e.target.value)}
+                    placeholder="Enter AWB or track number"
+                    className="mt-2 w-full rounded-2xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none"
+                  />
+                </label>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => updateTracking(order._id)}
+                  className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                >
+                  Save tracking details
+                </button>
+                {order.courier && order.trackingNumber && (
+                  <p className="text-sm text-gray-600">
+                    Current: <span className="font-medium text-gray-900">{order.courier}</span> / <span className="font-medium text-gray-900">{order.trackingNumber}</span>
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         ))}
