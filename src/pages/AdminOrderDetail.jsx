@@ -141,7 +141,7 @@ export default function AdminOrderDetail() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Order details</p>
-                <p className="mt-2 text-sm text-gray-700">Total: ${order.total?.toFixed(2) || 0}</p>
+                <p className="mt-2 text-sm text-gray-700">Total: ₹{order.total?.toFixed(2) || 0}</p>
                 <p className="text-sm text-gray-700">Payment: {order.paymentStatus || 'pending'}</p>
               </div>
             </div>
@@ -156,7 +156,7 @@ export default function AdminOrderDetail() {
                     <p className="font-medium text-gray-900">{item.title}</p>
                     <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                   </div>
-                  <p className="text-sm font-semibold text-gray-900">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="text-sm font-semibold text-gray-900">₹{(item.price * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
             </div>

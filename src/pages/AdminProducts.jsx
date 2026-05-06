@@ -456,7 +456,7 @@ export default function AdminProducts() {
           <button
             onClick={handleBulkUpload}
             disabled={!bulkFile || bulkLoading || actionLoading}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-white hover:bg-primary-dark transition shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="h-5 w-5" />
             Upload Bulk
@@ -567,7 +567,7 @@ export default function AdminProducts() {
               <h4 className="font-semibold text-gray-900 mb-4">Pricing & Inventory</h4>
               <div className="grid gap-6 sm:grid-cols-2">
                 <label className="block">
-                  <span className="text-sm font-semibold text-gray-700">Price ($) *</span>
+                  <span className="text-sm font-semibold text-gray-700">Price (₹) *</span>
                   <input
                     name="price"
                     type="number"
@@ -580,7 +580,7 @@ export default function AdminProducts() {
                   />
                 </label>
                 <label className="block">
-                  <span className="text-sm font-semibold text-gray-700">MRP ($)</span>
+                  <span className="text-sm font-semibold text-gray-700">MRP (₹)</span>
                   <input
                     name="mrp"
                     type="number"
@@ -643,18 +643,18 @@ export default function AdminProducts() {
                   <div className="grid gap-4 sm:grid-cols-3 text-sm">
                     <div>
                       <p className="text-green-700 mb-1">Original Price (MRP)</p>
-                      <p className="text-xl font-bold text-green-900">${form.mrp.toFixed(2)}</p>
+                      <p className="text-xl font-bold text-gray-900">₹{form.mrp.toFixed(2)}</p>
                     </div>
                     <div>
                       <p className="text-green-700 mb-1">Discount Amount</p>
                       <p className="text-xl font-bold text-green-900">
-                        ${(form.mrp * form.discountPercentage / 100).toFixed(2)}
+                        ₹{(form.mrp * form.discountPercentage / 100).toFixed(2)}
                       </p>
                     </div>
                     <div className="rounded-lg bg-green-100 p-3">
                       <p className="text-green-700 mb-1">Final Price (Selling Price)</p>
                       <p className="text-2xl font-bold text-green-900">
-                        ${(form.mrp - (form.mrp * form.discountPercentage / 100)).toFixed(2)}
+                        ₹{(form.mrp - (form.mrp * form.discountPercentage / 100)).toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -770,7 +770,7 @@ export default function AdminProducts() {
                   name="isActive"
                   checked={form.isActive}
                   onChange={(e) => setForm((prev) => ({ ...prev, isActive: e.target.checked }))}
-                  className="rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 bg-white text-primary focus:ring-primary"
                 />
                 <span className="text-sm font-semibold text-gray-700">Active (visible on frontend)</span>
               </label>
@@ -914,7 +914,7 @@ export default function AdminProducts() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-left align-top">
-                          <p className="font-semibold text-gray-900">${product.price?.toFixed(2)}</p>
+                          <p className="font-semibold text-gray-900">₹{product.price?.toFixed(2)}</p>
                         </td>
                         <td className="px-6 py-4 text-left align-top">
                           <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${product.isActive ?? true ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>

@@ -166,7 +166,6 @@ export default function Home() {
   })
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
-  const [countdown, setCountdown] = useState({ hours: '00', minutes: '00', seconds: '00' })
   const [activeTab, setActiveTab] = useState('Best Seller')
 
   const [flashEmblaRef, flashEmblaApi] = useEmblaCarousel({ loop: false, align: 'start', containScroll: 'trimSnaps' })
@@ -214,20 +213,6 @@ export default function Home() {
     loadHomeData()
   }, [])
 
-  useEffect(() => {
-    const saleEndsAt = new Date(Date.now() + 1000 * 60 * 60 * 8)
-    const timer = setInterval(() => {
-      const now = new Date()
-      const diff = Math.max(0, saleEndsAt - now)
-      const hours = String(Math.floor(diff / 1000 / 60 / 60)).padStart(2, '0')
-      const minutes = String(Math.floor((diff / 1000 / 60) % 60)).padStart(2, '0')
-      const seconds = String(Math.floor((diff / 1000) % 60)).padStart(2, '0')
-      setCountdown({ hours, minutes, seconds })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [])
-
   if (status === 'loading') {
     return <Loader message="Loading homepage data..." />
   }
@@ -255,7 +240,7 @@ export default function Home() {
     return index >= 2
   })
 
-  const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
+  const formatCurrency = (value) => `₹${value.toFixed(2)}`
 
   return (
     <div className="bg-slate-50 text-slate-900">
@@ -337,14 +322,6 @@ export default function Home() {
             {homepageContent.flashSaleSection.title && (
               <h2 className="mt-2 text-3xl font-bold text-slate-900">{homepageContent.flashSaleSection.title}</h2>
             )}
-          </div>
-          <div className="inline-flex items-center gap-3 rounded-full bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/20">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-rose-500 text-white">?</span>
-            <span>{countdown.hours}</span>
-            <span>:</span>
-            <span>{countdown.minutes}</span>
-            <span>:</span>
-            <span>{countdown.seconds}</span>
           </div>
         </div>
 

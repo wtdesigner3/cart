@@ -110,7 +110,7 @@ export default function OrderDetail() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm text-gray-500">Order total</p>
-                <p className="mt-2 text-2xl font-semibold text-gray-900">${order.total?.toFixed(2) || 0}</p>
+                <p className="mt-2 text-2xl font-semibold text-gray-900">₹{order.total?.toFixed(2) || 0}</p>
               </div>
               <button
                 onClick={handleDownloadInvoice}
@@ -134,7 +134,7 @@ export default function OrderDetail() {
                     <p className="font-medium text-gray-900">{item.title}</p>
                     <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                   </div>
-                  <p className="text-sm font-semibold text-gray-900">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="text-sm font-semibold text-gray-900">₹{(item.price * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
             </div>

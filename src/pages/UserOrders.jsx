@@ -90,7 +90,7 @@ export default function UserOrders() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Total</p>
-                  <p className="text-lg font-semibold text-gray-900">${order.total?.toFixed(2)}</p>
+                  <p className="text-lg font-semibold text-gray-900">₹{order.total?.toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Date</p>
@@ -111,7 +111,7 @@ export default function UserOrders() {
                     {order.items?.map((item) => (
                       <li key={item.id} className="flex justify-between">
                         <span>{item.title} × {item.quantity}</span>
-                        <span>${(item.price * item.quantity).toFixed(2)}</span>
+                        <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                       </li>
                     ))}
                   </ul>

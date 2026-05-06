@@ -88,7 +88,7 @@ export default function CategoryPage() {
                 <p className="text-lg font-semibold text-slate-900">{product.title}</p>
                 <p className="text-sm text-slate-500 line-clamp-2">{product.description}</p>
                 <div className="flex items-center justify-between pt-3">
-                  <span className="text-lg font-bold text-slate-900">${product.price?.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-slate-900">₹{product.price?.toFixed(2)}</span>
                   <span className="text-xs uppercase tracking-[0.2em] text-indigo-600">{product.category || 'Shop'}</span>
                 </div>
               </div>

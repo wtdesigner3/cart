@@ -112,7 +112,7 @@ export default function AdminOrders() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total</p>
-                <p className="mt-1 font-semibold text-gray-900">${order.total?.toFixed(2) || 0}</p>
+                <p className="mt-1 font-semibold text-gray-900">₹{order.total?.toFixed(2) || 0}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Status</p>
@@ -158,7 +158,7 @@ export default function AdminOrders() {
                 {order.items?.map((item) => (
                   <li key={item.id} className="flex justify-between gap-4">
                     <span>{item.title} × {item.quantity}</span>
-                    <span>${(item.price * item.quantity).toFixed(2)}</span>
+                    <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                   </li>
                 ))}
               </ul>

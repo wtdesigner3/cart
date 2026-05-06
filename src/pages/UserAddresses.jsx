@@ -204,7 +204,7 @@ export default function UserAddresses() {
                 <div className="flex gap-2 ml-4">
                   <button
                     onClick={() => handleEdit(addr)}
-                    className="rounded-2xl bg-blue-600 px-3 py-1 text-sm font-semibold text-white hover:bg-blue-700"
+                    className="rounded-2xl bg-primary px-3 py-1 text-sm font-semibold text-white hover:bg-primary-dark"
                   >
                     Edit
                   </button>

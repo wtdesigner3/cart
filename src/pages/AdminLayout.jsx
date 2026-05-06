@@ -83,7 +83,7 @@ export default function AdminLayout() {
             'flex items-center gap-3 mb-8 transition-all duration-300',
             sidebarExpanded ? 'justify-start' : 'justify-center'
           )}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-lg flex-shrink-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white font-bold text-lg flex-shrink-0">
               W
             </div>
             {sidebarExpanded && (
@@ -129,7 +129,7 @@ export default function AdminLayout() {
                       <div
                         className={classNames(
                           isActive
-                            ? 'bg-blue-50 text-blue-600 font-medium'
+                            ? 'bg-primary-soft text-primary font-medium'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
                           'flex items-center justify-center lg:justify-start gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200',
                           !sidebarExpanded && 'lg:px-2'
@@ -160,7 +160,7 @@ export default function AdminLayout() {
                           <div
                             className={classNames(
                               isActive
-                                ? 'bg-blue-50 text-blue-600 font-medium border-l-2 border-blue-600'
+                                ? 'bg-primary-soft text-primary font-medium border-l-2 border-primary'
                                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-l-2 border-transparent',
                               'flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm font-medium transition-colors duration-200',
                             )}
@@ -184,7 +184,7 @@ export default function AdminLayout() {
                 href="/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between gap-3 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md group"
+                className="flex items-center justify-between gap-3 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary-dark transition-all duration-200 shadow-sm hover:shadow-md group"
               >
                 <span className="flex items-center gap-2">
                   <span className="relative h-2 w-2 rounded-full bg-white">

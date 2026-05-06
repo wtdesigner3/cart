@@ -63,9 +63,9 @@ export default function Product() {
                 <p className="mt-2 text-sm text-gray-500 line-clamp-2">{product.description}</p>
                 <div className="mt-4 flex flex-col gap-3">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-bold text-gray-900">${product.price.toFixed(2)}</span>
+                    <span className="text-lg font-bold text-gray-900">₹{product.price.toFixed(2)}</span>
                     {product.mrp > product.price && (
-                      <span className="text-sm text-gray-500 line-through">${product.mrp.toFixed(2)}</span>
+                      <span className="text-sm text-gray-500 line-through">₹{product.mrp.toFixed(2)}</span>
                     )}
                     {product.discountPercentage > 0 && (
                       <span className="text-sm font-semibold text-secondary">Save {product.discountPercentage}%</span>
@@ -75,7 +75,7 @@ export default function Product() {
                     <button
                       type="button"
                       onClick={() => handleAddToCart(product)}
-                      className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                      className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary-dark"
                     >
                       Add to cart
                     </button>

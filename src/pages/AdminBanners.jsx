@@ -298,7 +298,7 @@ export default function AdminBanners() {
           <button
             onClick={handleBulkUpload}
             disabled={!bulkFile || bulkLoading || actionLoading}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-white hover:bg-primary-dark transition shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="h-5 w-5" />
             Upload Bulk
@@ -453,7 +453,7 @@ export default function AdminBanners() {
                   type="checkbox"
                   checked={form.isActive}
                   onChange={handleChange}
-                  className="rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 bg-white text-primary focus:ring-primary"
                 />
                 <span className="text-sm font-semibold text-gray-700">Active</span>
               </label>

@@ -141,7 +141,7 @@ export default function Payment() {
                 Redirecting to Stripe…
               </span>
             ) : (
-              `Pay $${total.toFixed(2)} with Stripe`
+              `Pay ₹${total.toFixed(2)} with Stripe`
             )}
           </button>
         </form>
@@ -157,16 +157,16 @@ export default function Payment() {
                 <img src={getImageUrl(item.thumbnail)} alt={item.title} className="h-20 w-20 rounded-2xl object-cover" />
                 <div className="flex-1">
                   <h3 className="text-sm font-semibold text-gray-900">{item.title}</h3>
-                  <p className="mt-1 text-sm text-gray-500">{item.quantity ?? 1} × ${item.price.toFixed(2)}</p>
+                  <p className="mt-1 text-sm text-gray-500">{item.quantity ?? 1} × ₹{item.price.toFixed(2)}</p>
                 </div>
-                <div className="text-sm font-semibold text-gray-900">${((item.quantity ?? 1) * item.price).toFixed(2)}</div>
+                <div className="text-sm font-semibold text-gray-900">₹{((item.quantity ?? 1) * item.price).toFixed(2)}</div>
               </div>
             ))}
           </div>
           <div className="rounded-3xl bg-gray-100 p-4 text-sm text-gray-700">
             <div className="flex justify-between">
               <span>Order total</span>
-              <span className="font-semibold text-gray-900">${total.toFixed(2)}</span>
+              <span className="font-semibold text-gray-900">₹{total.toFixed(2)}</span>
             </div>
           </div>
         </aside>

@@ -47,7 +47,7 @@ export default function Cart() {
           <p className="mt-1 text-sm text-gray-600">You have {totalItems} item{totalItems !== 1 ? 's' : ''} in your cart.</p>
         </div>
         <div className="flex flex-col items-start gap-3 sm:items-end">
-          <div className="rounded-full bg-indigo-100 px-4 py-2 text-sm font-medium text-indigo-700">Total: ${totalPrice.toFixed(2)}</div>
+          <div className="rounded-full bg-primary-soft px-4 py-2 text-sm font-medium text-primary">Total: ₹{totalPrice.toFixed(2)}</div>
           <Link
             to="/checkout"
             className="inline-flex rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
@@ -65,7 +65,7 @@ export default function Cart() {
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">{item.title}</h2>
                 <p className="mt-2 text-sm text-gray-500">{item.category}</p>
-                <p className="mt-3 text-sm text-gray-700">${item.price.toFixed(2)} each</p>
+                <p className="mt-3 text-sm text-gray-700">₹{item.price.toFixed(2)} each</p>
               </div>
             </div>
 
@@ -120,7 +120,7 @@ export default function Cart() {
               <button
                 type="button"
                 onClick={() => dispatch(removeCartItem(item.id))}
-                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark"
               >
                 Remove
               </button>
@@ -143,7 +143,7 @@ export default function Cart() {
 
         <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
           <span className="text-sm text-gray-600">Total price</span>
-          <span className="text-lg font-semibold text-gray-900">${totalPrice.toFixed(2)}</span>
+          <span className="text-lg font-semibold text-gray-900">₹{totalPrice.toFixed(2)}</span>
         </div>
       </div>
     </div>

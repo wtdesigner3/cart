@@ -260,7 +260,7 @@ export default function AdminCategories() {
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
-                className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition shadow-sm"
+                className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-white hover:bg-primary-dark transition shadow-sm"
               >
                 <Plus className="h-4 w-4" />
                 {editingId ? 'Update Category' : 'Create Category'}
@@ -277,7 +277,7 @@ export default function AdminCategories() {
         ) : (
           <button
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition shadow-sm"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-white hover:bg-primary-dark transition shadow-sm"
           >
             <Plus className="h-5 w-5" />
             Add New Category

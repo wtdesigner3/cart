@@ -223,7 +223,7 @@ export default function ProductsPage() {
                     </div>
                     <p className="text-sm leading-5 text-slate-600 line-clamp-2">{product.description}</p>
                     <div className="flex items-center justify-between gap-3 pt-2">
-                      <span className="text-xl font-extrabold text-slate-900">${product.price?.toFixed(2)}</span>
+                      <span className="text-xl font-extrabold text-slate-900">₹{product.price?.toFixed(2)}</span>
                       <div className="flex items-center gap-2">
                         <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-indigo-700">Buy now</span>
                       </div>

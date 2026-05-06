@@ -65,7 +65,7 @@ export default function CartNotification() {
           
           <div className="flex-1 pr-6">
             <h3 className="text-sm font-semibold text-gray-900">Added to cart</h3>
-            <p className="text-xs text-gray-500 mt-1">{itemCount} item{itemCount !== 1 ? 's' : ''} • ${total.toFixed(2)}</p>
+            <p className="text-xs text-gray-500 mt-1">{itemCount} item{itemCount !== 1 ? 's' : ''} • ₹{total.toFixed(2)}</p>
             <Link
               to="/cart"
               className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 mt-2 inline-block"

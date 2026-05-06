@@ -81,7 +81,7 @@ export default function AdminUsers() {
                     type="button"
                     onClick={() => toggleAdmin(user._id, !user.isAdmin)}
                     disabled={user._id === userInfo?._id}
-                    className="rounded-lg border border-blue-300 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 transition"
+                    className="rounded-lg border border-primary px-3 py-2 text-xs font-semibold text-primary hover:bg-primary-soft disabled:cursor-not-allowed disabled:opacity-50 transition"
                   >
                     {user.isAdmin ? 'Revoke' : 'Make Admin'}
                   </button>

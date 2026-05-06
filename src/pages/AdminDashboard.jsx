@@ -73,7 +73,7 @@ export default function AdminDashboard() {
                   <p className="text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-gray-900">${order.total?.toFixed(2)}</p>
+                  <p className="text-sm font-semibold text-gray-900">₹{order.total?.toFixed(2)}</p>
                   <p className="text-sm text-gray-500">{order.status || 'Pending'}</p>
                 </div>
               </div>

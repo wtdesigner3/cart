@@ -117,7 +117,7 @@ export default function ProductDetail() {
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-indigo-500"></span>
-                    Free shipping on orders over $50
+                    Free shipping on orders over ₹ 2500
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-indigo-500"></span>
@@ -139,9 +139,9 @@ export default function ProductDetail() {
                 <div className="rounded-3xl border border-gray-200 bg-slate-50 p-5">
                   <p className="text-sm text-gray-500">Price</p>
                   <div className="mt-2 flex items-baseline gap-3">
-                    <p className="text-3xl font-semibold text-slate-900">${product.price.toFixed(2)}</p>
+                    <p className="text-3xl font-semibold text-slate-900">₹{product.price.toFixed(2)}</p>
                     {product.mrp > product.price && (
-                      <p className="text-sm line-through text-slate-500">${product.mrp.toFixed(2)}</p>
+                      <p className="text-sm line-through text-slate-500">₹{product.mrp.toFixed(2)}</p>
                     )}
                   </div>
                   {product.discountPercentage > 0 && (
@@ -209,7 +209,7 @@ export default function ProductDetail() {
 
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Shipping</p>
-            <p className="mt-3 text-sm text-slate-600">Free standard shipping on orders over $50. Fast handling and secure delivery.</p>
+            <p className="mt-3 text-sm text-slate-600">Free standard shipping on orders over ₹ 2500. Fast handling and secure delivery.</p>
           </div>
         </aside>
       </div>
@@ -239,7 +239,7 @@ export default function ProductDetail() {
                   <h3 className="mt-3 text-sm font-semibold text-slate-900">{item.title}</h3>
                   <p className="mt-2 text-sm text-slate-500 line-clamp-2">{item.description}</p>
                   <div className="mt-4 flex items-center justify-between text-sm font-semibold text-slate-900">
-                    <span>${item.price.toFixed(2)}</span>
+                    <span>₹{item.price.toFixed(2)}</span>
                     <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">View</span>
                   </div>
                 </div>
