@@ -580,7 +580,7 @@ export default function AdminBanners() {
                             )}
                           </div>
                         </div>
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex gap-2 pt-2 flex-wrap">
                         <button
                           onClick={() => handleToggle(banner._id || banner.id)}
                           disabled={actionLoading || bulkLoading}
