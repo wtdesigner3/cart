@@ -51,7 +51,7 @@ export default function Header() {
       <div className="border-b border-slate-200 bg-white/90">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2 text-xs text-slate-600 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
-            <a href="mailto:support@belibeli.com" className="font-medium text-slate-700 hover:text-emerald-600">
+            <a href="mailto:support@belibeli.com" className="font-medium text-slate-700 hover:text-primary-dark">
               Email us
             </a>
             <span className="text-slate-500">for support or questions</span>
@@ -70,7 +70,7 @@ export default function Header() {
                 </Link>
 
                 <Menu as="div" className="relative">
-                  <MenuButton className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                  <MenuButton className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 focus:outline-none focus-ring-primary">
                     All Category
                     <ChevronDownIcon className="h-4 w-4" />
                   </MenuButton>
@@ -158,7 +158,7 @@ export default function Header() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search product or brand here..."
-                    className="w-full rounded-full border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full rounded-full border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none focus-ring-primary"
                   />
                 </div>
               </form>
@@ -175,7 +175,7 @@ export default function Header() {
 
                 {userInfo ? (
                   <Menu as="div" className="relative">
-                    <MenuButton className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                    <MenuButton className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus-ring-primary">
                       My Account
                       <ChevronDownIcon className="h-4 w-4" />
                     </MenuButton>
@@ -219,7 +219,7 @@ export default function Header() {
                   <>
                     <Link
                       to="/register"
-                      className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-500/20 hover:bg-emerald-500"
+                      className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
                     >
                       Sign Up
                     </Link>
@@ -234,7 +234,7 @@ export default function Header() {
               </div>
 
               <div className="flex items-center md:hidden">
-                <DisclosureButton className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                <DisclosureButton className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 focus:outline-none focus-ring-primary">
                   {open ? <XMarkIcon className="h-5 w-5" /> : <Bars3Icon className="h-5 w-5" />}
                 </DisclosureButton>
               </div>
@@ -281,7 +281,7 @@ export default function Header() {
                   </>
                 ) : (
                   <>
-                    <Link to="/register" className="block rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-500">
+                    <Link to="/register" className="block rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary-dark">
                       Sign Up
                     </Link>
                     <Link to="/login" className="block rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50">

@@ -8,6 +8,10 @@ import { parseCsv } from '../utils/csvParser.js'
 const initialBannerForm = {
   title: '',
   subtitle: '',
+  description: '',
+  bgColor: '',
+  bgImage: '',
+  textColor: '',
   image: '',
   link: '',
   buttonText: '',
@@ -100,6 +104,10 @@ export default function AdminBanners() {
     setForm({
       title: banner.title || '',
       subtitle: banner.subtitle || '',
+      description: banner.description || '',
+      bgColor: banner.bgColor || '',
+      bgImage: banner.bgImage || '',
+      textColor: banner.textColor || '',
       image: banner.image || '',
       link: banner.link || '',
       buttonText: banner.buttonText || '',
@@ -178,6 +186,10 @@ export default function AdminBanners() {
     rows.map((row) => ({
       title: row.title || '',
       subtitle: row.subtitle || row.subTitle || '',
+      description: row.description || row.desc || row.shortDescription || '',
+      bgColor: row.bgColor || row.backgroundColor || '',
+      bgImage: row.bgImage || row.backgroundImage || '',
+      textColor: row.textColor || row.textColour || row.text_color || '',
       image: row.image || row.thumbnail || '',
       link: row.link || '',
       buttonText: row.buttonText || row.buttontext || row.button || '',
@@ -306,28 +318,76 @@ export default function AdminBanners() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-6">
+              <div className="grid gap-6 sm:grid-cols-2">
+                <label className="block">
+                  <span className="text-sm font-semibold text-gray-700">Banner Title *</span>
+                  <input
+                    name="title"
+                    value={form.title}
+                    onChange={handleChange}
+                    required
+                    className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                    placeholder="e.g., Summer Sale"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-sm font-semibold text-gray-700">Subtitle</span>
+                  <input
+                    name="subtitle"
+                    value={form.subtitle}
+                    onChange={handleChange}
+                    className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                    placeholder="e.g., Promotional badge"
+                  />
+                </label>
+              </div>
               <label className="block">
-                <span className="text-sm font-semibold text-gray-700">Banner Title *</span>
+                <span className="text-sm font-semibold text-gray-700">Short Description</span>
                 <input
-                  name="title"
-                  value={form.title}
+                  name="description"
+                  value={form.description}
                   onChange={handleChange}
-                  required
                   className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-                  placeholder="e.g., Summer Sale"
+                  placeholder="e.g., Modern notebooks with fast delivery"
                 />
               </label>
-              <label className="block">
-                <span className="text-sm font-semibold text-gray-700">Subtitle</span>
-                <input
-                  name="subtitle"
-                  value={form.subtitle}
-                  onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-                  placeholder="e.g., Up to 50% off"
-                />
-              </label>
+
+              <div className="grid gap-6 sm:grid-cols-2">
+                <label className="block">
+                  <span className="text-sm font-semibold text-gray-700">Background Color</span>
+                  <input
+                    name="bgColor"
+                    value={form.bgColor}
+                    onChange={handleChange}
+                    className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                    placeholder="#F3F4F6"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-sm font-semibold text-gray-700">Background Image URL</span>
+                  <input
+                    name="bgImage"
+                    value={form.bgImage}
+                    onChange={handleChange}
+                    className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                    placeholder="https://example.com/background.jpg"
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2">
+                <label className="block">
+                  <span className="text-sm font-semibold text-gray-700">Text Color</span>
+                  <input
+                    name="textColor"
+                    value={form.textColor}
+                    onChange={handleChange}
+                    className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                    placeholder="#ffffff or #000000"
+                  />
+                </label>
+              </div>
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2">
@@ -493,6 +553,9 @@ export default function AdminBanners() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0 flex-1">
                             <h4 className="text-lg font-bold text-gray-900 truncate">{banner.title}</h4>
+                            {banner.description && (
+                              <p className="mt-1 text-sm text-gray-700 truncate">{banner.description}</p>
+                            )}
                             {banner.subtitle && (
                               <p className="mt-1 text-sm text-blue-600 truncate">{banner.subtitle}</p>
                             )}

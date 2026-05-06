@@ -38,7 +38,7 @@ export default function ForgotPassword() {
         <p className="mt-2 text-sm text-gray-500">Enter your email and we will send a reset code.</p>
 
         {sent ? (
-          <div className="mt-6 space-y-3 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">
+          <div className="mt-6 space-y-3 rounded-2xl bg-primary-soft p-4 text-sm text-primary">
             <p>Instructions sent. Check your inbox, then use the reset page to create a new password.</p>
             <p>If you are testing locally, open the backend console or use the preview URL shown in the toast.</p>
             {previewUrl ? (

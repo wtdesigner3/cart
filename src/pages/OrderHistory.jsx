@@ -34,7 +34,7 @@ export default function OrderHistory() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Status</p>
-                  <p className="text-lg font-semibold text-green-600">{order.status || 'Completed'}</p>
+                  <p className="text-lg font-semibold text-secondary">{order.status || 'Completed'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Total</p>
@@ -74,7 +74,7 @@ export default function OrderHistory() {
                   </div>
                   <Link
                     to={`/orders/${order._id}`}
-                    className="rounded-2xl border border-indigo-600 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+                    className="rounded-2xl border border-secondary bg-secondary-soft px-4 py-2 text-sm font-semibold text-secondary hover:bg-secondary-dark"
                   >
                     View details
                   </Link>

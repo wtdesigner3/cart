@@ -68,7 +68,7 @@ export default function Product() {
                       <span className="text-sm text-gray-500 line-through">${product.mrp.toFixed(2)}</span>
                     )}
                     {product.discountPercentage > 0 && (
-                      <span className="text-sm font-semibold text-green-600">Save {product.discountPercentage}%</span>
+                      <span className="text-sm font-semibold text-secondary">Save {product.discountPercentage}%</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">

@@ -108,7 +108,7 @@ export default function Payment() {
       )}
 
       {status.success && (
-        <div className="mb-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-700">
+        <div className="mb-6 rounded-3xl border border-primary-soft bg-primary-soft/70 p-6 text-sm text-primary">
           {status.success}
         </div>
       )}

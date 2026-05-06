@@ -22,6 +22,10 @@ let homepageContent = {
     subtitle:
       'From the best seller collections to curated local storefronts, find what you love faster with trusted sellers and premium deals.',
   },
+  theme: {
+    primaryColor: '#10b981',
+    secondaryColor: '#f59e0b',
+  },
 }
 
 router.get('/', async (req, res) => {
@@ -37,6 +41,10 @@ router.put('/', protect, admin, async (req, res) => {
     homepageContent = {
       ...homepageContent,
       ...req.body,
+      theme: {
+        ...homepageContent.theme,
+        ...(req.body.theme || {}),
+      },
     }
 
     res.json(homepageContent)

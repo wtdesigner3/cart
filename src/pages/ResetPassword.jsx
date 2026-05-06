@@ -34,7 +34,7 @@ export default function ResetPassword() {
         <p className="mt-2 text-sm text-gray-500">Use the code we sent to your email to update your password.</p>
 
         {success ? (
-          <div className="mt-6 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">
+          <div className="mt-6 rounded-2xl bg-primary-soft p-4 text-sm text-primary">
             Your password has been updated successfully.
           </div>
         ) : (

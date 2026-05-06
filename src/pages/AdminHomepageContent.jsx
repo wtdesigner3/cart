@@ -22,6 +22,10 @@ const defaultHomepageContent = {
     subtitle:
       'From the best seller collections to curated local storefronts, find what you love faster with trusted sellers and premium deals.',
   },
+  theme: {
+    primaryColor: '#10b981',
+    secondaryColor: '#f59e0b',
+  },
 }
 
 export default function AdminHomepageContent() {
@@ -88,6 +92,30 @@ export default function AdminHomepageContent() {
       <form onSubmit={handleSubmit} className="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm space-y-6">
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-slate-900">Theme settings</h2>
+            <label className="block">
+              <span className="text-sm font-semibold text-slate-700">Primary color</span>
+              <input
+                type="color"
+                name="theme.primaryColor"
+                value={content.theme.primaryColor}
+                onChange={handleChange}
+                className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm font-semibold text-slate-700">Secondary color</span>
+              <input
+                type="color"
+                name="theme.secondaryColor"
+                value={content.theme.secondaryColor}
+                onChange={handleChange}
+                className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-secondary"
+              />
+            </label>
+          </div>
+
+          <div className="space-y-4">
             <h2 className="text-xl font-semibold text-slate-900">Categories section</h2>
             <label className="block">
               <span className="text-sm font-semibold text-slate-700">Label</span>
@@ -95,7 +123,7 @@ export default function AdminHomepageContent() {
                 name="categoriesSection.label"
                 value={content.categoriesSection.label}
                 onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500"
+                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-primary"
               />
             </label>
             <label className="block">
@@ -104,7 +132,7 @@ export default function AdminHomepageContent() {
                 name="categoriesSection.title"
                 value={content.categoriesSection.title}
                 onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500"
+                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-primary"
               />
             </label>
             <label className="block">
@@ -113,7 +141,7 @@ export default function AdminHomepageContent() {
                 name="categoriesSection.buttonText"
                 value={content.categoriesSection.buttonText}
                 onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500"
+                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-primary"
               />
             </label>
           </div>
@@ -126,7 +154,7 @@ export default function AdminHomepageContent() {
                 name="flashSaleSection.label"
                 value={content.flashSaleSection.label}
                 onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500"
+                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-primary"
               />
             </label>
             <label className="block">
@@ -135,7 +163,7 @@ export default function AdminHomepageContent() {
                 name="flashSaleSection.title"
                 value={content.flashSaleSection.title}
                 onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500"
+                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-primary"
               />
             </label>
           </div>
@@ -150,7 +178,7 @@ export default function AdminHomepageContent() {
                 name="recommendationsSection.label"
                 value={content.recommendationsSection.label}
                 onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500"
+                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-primary"
               />
             </label>
             <label className="block">
@@ -159,7 +187,7 @@ export default function AdminHomepageContent() {
                 name="recommendationsSection.title"
                 value={content.recommendationsSection.title}
                 onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500"
+                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-primary"
               />
             </label>
           </div>
@@ -172,7 +200,7 @@ export default function AdminHomepageContent() {
                 name="promoSection.title"
                 value={content.promoSection.title}
                 onChange={handleChange}
-                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500"
+                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-primary"
               />
             </label>
             <label className="block">
@@ -182,7 +210,7 @@ export default function AdminHomepageContent() {
                 value={content.promoSection.subtitle}
                 onChange={handleChange}
                 rows={4}
-                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500"
+                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-primary"
               />
             </label>
           </div>
@@ -192,7 +220,7 @@ export default function AdminHomepageContent() {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:opacity-50"
+            className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:opacity-50"
           >
             Save homepage content
           </button>

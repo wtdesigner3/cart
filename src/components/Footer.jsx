@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="rounded-[40px] border border-white/10 bg-slate-900/80 p-10 shadow-2xl shadow-black/30">
           <div className="grid gap-10 lg:grid-cols-5">
             <div className="lg:col-span-2">
-              <p className="text-sm uppercase tracking-[0.3em] text-emerald-400">BeliBeli.com</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-primary-soft">BeliBeli.com</p>
               <h2 className="mt-4 text-3xl font-bold text-white">Let's Shop Beyond Boundaries</h2>
               <p className="mt-4 max-w-xl text-sm leading-7 text-slate-400">
                 Discover curated stores, flash deals, and the best daily recommendations all in one elegant marketplace experience.

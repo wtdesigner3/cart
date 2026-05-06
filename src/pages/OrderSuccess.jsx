@@ -13,10 +13,10 @@ export default function OrderSuccess() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:px-8">
-      <div className="rounded-3xl border border-green-200 bg-green-50 p-12 shadow-sm">
+      <div className="rounded-3xl border border-primary-soft bg-primary-soft p-12 shadow-sm">
         {/* Success Animation */}
-        <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-green-100">
-          <CheckCircleIcon className="h-12 w-12 animate-pulse text-green-600" />
+        <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-primary-soft">
+          <CheckCircleIcon className="h-12 w-12 animate-pulse text-primary" />
         </div>
 
         <h1 className="text-3xl font-bold text-gray-900">Order Successfully Placed!</h1>

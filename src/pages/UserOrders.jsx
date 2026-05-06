@@ -86,7 +86,7 @@ export default function UserOrders() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Status</p>
-                  <p className="text-lg font-semibold text-green-600">{order.status || 'Completed'}</p>
+                  <p className="text-lg font-semibold text-secondary">{order.status || 'Completed'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Total</p>

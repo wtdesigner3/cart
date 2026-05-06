@@ -129,7 +129,7 @@ export default function Checkout() {
                         <p className="text-sm text-gray-600">{address.city}, {address.country} {address.postalCode}</p>
                       </div>
                       {address.isDefault && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-soft text-primary">
                           Default
                         </span>
                       )}
@@ -244,7 +244,7 @@ export default function Checkout() {
                   <button
                     type="button"
                     onClick={handleAddAddress}
-                    className="w-full rounded-2xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
+                    className="w-full rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
                   >
                     Save Address
                   </button>

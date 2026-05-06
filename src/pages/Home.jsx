@@ -32,18 +32,28 @@ function CarouselHero({ slides }) {
             const linkPath = slide.link || '/products'
 
             return (
-              <div key={slide._id || slide.id || slide.title} className="min-w-full flex-shrink-0 grid h-full grid-cols-1 items-center gap-0 lg:grid-cols-[1fr_1fr]">
+              <div
+              key={slide._id || slide.id || slide.title}
+              className="min-w-full flex-shrink-0 grid h-full grid-cols-1 items-center gap-0 lg:grid-cols-[1fr_1fr]"
+              style={{
+                backgroundColor: slide.bgColor || undefined,
+                backgroundImage: slide.bgImage ? `url(${getImageUrl(slide.bgImage)})` : undefined,
+                backgroundSize: slide.bgImage ? 'cover' : undefined,
+                backgroundPosition: slide.bgImage ? 'center' : undefined,
+                backgroundRepeat: slide.bgImage ? 'no-repeat' : undefined,
+              }}
+            >
                 <div className="flex flex-col justify-center gap-6 px-4 py-8 sm:px-6 lg:px-12 lg:py-16 overflow-hidden">
                   {slide.subtitle && (
-                    <span className="inline-flex rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white w-fit">
+                    <span className="inline-flex rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white w-fit">
                       {slide.subtitle}
                     </span>
                   )}
                   <div className="space-y-4">
-                    <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+                    <h2 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl" style={slide.textColor ? { color: slide.textColor } : undefined}>
                       {slide.title || 'Discover your next favorite product'}
                     </h2>
-                    {slide.description && <p className="max-w-xl text-lg leading-8 text-slate-600">{slide.description}</p>}
+                    {slide.description && <p className="max-w-xl text-lg leading-8" style={slide.textColor ? { color: slide.textColor } : undefined}>{slide.description}</p>}
                   </div>
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                     {slide.buttonText && (
@@ -52,14 +62,14 @@ function CarouselHero({ slides }) {
                           href={linkPath}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500 sm:w-auto"
+                          className="inline-flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-primary-dark sm:w-auto"
                         >
                           {slide.buttonText}
                         </a>
                       ) : (
                         <Link
                           to={linkPath}
-                          className="inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500 sm:w-auto"
+                          className="inline-flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-primary-dark sm:w-auto"
                         >
                           {slide.buttonText}
                         </Link>
@@ -74,12 +84,12 @@ function CarouselHero({ slides }) {
                   </div>
                 </div>
 
-                <div className="relative overflow-hidden bg-slate-100 h-full">
+                <div className="flex h-full items-center justify-center overflow-hidden px-4 py-8 sm:px-6 lg:px-12 bg-transparent">
                   {slide.image ? (
                     <img
                       src={getImageUrl(slide.image)}
                       alt={slide.title}
-                      className="h-full w-full object-cover"
+                      className="max-h-full w-full max-w-full object-contain"
                     />
                   ) : (
                     <div className="flex h-full min-h-[340px] items-center justify-center p-8 text-center text-slate-500">
@@ -118,7 +128,7 @@ function CarouselHero({ slides }) {
             onClick={() => scrollTo(index)}
             className={
               selectedIndex === index
-                ? 'h-2.5 w-10 rounded-full bg-emerald-600 transition'
+                ? 'h-2.5 w-10 rounded-full bg-primary transition'
                 : 'h-2.5 w-2.5 rounded-full bg-slate-300 transition'
             }
             aria-label={`Go to slide ${index + 1}`}
@@ -261,7 +271,7 @@ export default function Home() {
                 <p className="text-sm font-semibold uppercase tracking-[0.35em] text-slate-500">{homepageContent.categoriesSection.label}</p>
                 <h2 className="mt-2 text-2xl font-bold text-slate-900">{homepageContent.categoriesSection.title}</h2>
               </div>
-              <Link to="/products" className="text-sm font-semibold text-emerald-600 hover:text-emerald-500">
+              <Link to="/products" className="text-sm font-semibold text-primary hover:text-primary-dark">
                 {homepageContent.categoriesSection.buttonText}
               </Link>
             </div>
@@ -321,8 +331,12 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-rose-600">{homepageContent.flashSaleSection.label}</p>
-            <h2 className="mt-2 text-3xl font-bold text-slate-900">{homepageContent.flashSaleSection.title}</h2>
+            {homepageContent.flashSaleSection.label && (
+              <p className="text-sm font-semibold uppercase tracking-[0.35em] text-rose-600">{homepageContent.flashSaleSection.label}</p>
+            )}
+            {homepageContent.flashSaleSection.title && (
+              <h2 className="mt-2 text-3xl font-bold text-slate-900">{homepageContent.flashSaleSection.title}</h2>
+            )}
           </div>
           <div className="inline-flex items-center gap-3 rounded-full bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/20">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-rose-500 text-white">?</span>
@@ -394,8 +408,12 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.35em] text-indigo-600">{homepageContent.recommendationsSection.label}</p>
-            <h2 className="mt-2 text-3xl font-bold text-slate-900">{homepageContent.recommendationsSection.title}</h2>
+            {homepageContent.recommendationsSection.label && (
+              <p className="text-sm uppercase tracking-[0.35em] text-indigo-600">{homepageContent.recommendationsSection.label}</p>
+            )}
+            {homepageContent.recommendationsSection.title && (
+              <h2 className="mt-2 text-3xl font-bold text-slate-900">{homepageContent.recommendationsSection.title}</h2>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {recommendationTabs.map((tab) => (
@@ -447,7 +465,7 @@ export default function Home() {
                     )}
                     <p className="text-xl font-bold text-slate-900">{formatCurrency(product.discountedPrice && product.discountedPrice < product.price ? product.discountedPrice : product.price)}</p>
                   </div>
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">{product.stock || 0}+ sold</span>
+                  <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary">{product.stock || 0}+ sold</span>
                 </div>
               </div>
             </Link>
@@ -457,9 +475,13 @@ export default function Home() {
 
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="overflow-hidden rounded-[40px] bg-slate-950 px-8 py-14 text-center text-white shadow-2xl shadow-black/20">
-          <p className="text-sm uppercase tracking-[0.35em] text-emerald-400">BeliBeli.com</p>
-          <h2 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">{homepageContent.promoSection.title}</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-300">{homepageContent.promoSection.subtitle}</p>
+          <p className="text-sm uppercase tracking-[0.35em] text-primary-soft">BeliBeli.com</p>
+          {homepageContent.promoSection.title && (
+            <h2 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">{homepageContent.promoSection.title}</h2>
+          )}
+          {homepageContent.promoSection.subtitle && (
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-300">{homepageContent.promoSection.subtitle}</p>
+          )}
         </div>
       </section>
     </div>

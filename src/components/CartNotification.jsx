@@ -58,8 +58,8 @@ export default function CartNotification() {
           </button>
 
           <div className="flex-shrink-0">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-              <ShoppingBagIcon className="h-6 w-6 text-green-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft">
+              <ShoppingBagIcon className="h-6 w-6 text-primary" />
             </div>
           </div>
           

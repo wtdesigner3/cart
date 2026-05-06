@@ -145,7 +145,7 @@ export default function ProductDetail() {
                     )}
                   </div>
                   {product.discountPercentage > 0 && (
-                    <p className="mt-2 text-sm text-green-600">Save {product.discountPercentage}%</p>
+                    <p className="mt-2 text-sm text-secondary">Save {product.discountPercentage}%</p>
                   )}
                 </div>
                 <div className="rounded-3xl border border-gray-200 bg-slate-50 p-5">

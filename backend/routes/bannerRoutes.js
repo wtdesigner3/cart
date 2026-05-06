@@ -28,13 +28,17 @@ router.get('/admin/all', protect, admin, async (req, res) => {
 // Create banner (admin)
 router.post('/', protect, admin, async (req, res) => {
   try {
-    const { title, subtitle, image, link, buttonText, isActive, order } = req.body
+    const { title, subtitle, description, bgColor, bgImage, textColor, image, link, buttonText, isActive, order } = req.body
 
     const banner = {
       _id: Date.now().toString(),
       id: Date.now().toString(),
       title,
       subtitle,
+      description: description || '',
+      bgColor: bgColor || '',
+      bgImage: bgImage || '',
+      textColor: textColor || '',
       image,
       link,
       buttonText,
@@ -64,6 +68,10 @@ router.post('/bulk', protect, admin, async (req, res) => {
         id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
         title: item.title,
         subtitle: item.subtitle || '',
+        description: item.description || '',
+        bgColor: item.bgColor || item.backgroundColor || '',
+        bgImage: item.bgImage || item.backgroundImage || '',
+        textColor: item.textColor || item.textColour || item.text_color || '',
         image: item.image || '',
         link: item.link || '',
         buttonText: item.buttonText || '',
