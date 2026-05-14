@@ -1,142 +1,119 @@
 import express from 'express'
+import Banner from '../models/Banner.js'
 import { protect, admin } from '../middleware/authMiddleware.js'
 
 const router = express.Router()
 
-// In-memory storage for demonstration (replace with MongoDB in production)
-let banners = []
-
-// Get all active banners
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
-    const activeBanners = banners.filter(b => b.isActive)
-    res.json(activeBanners)
-  } catch (error) {
-    res.status(500).json({ message: error.message })
-  }
-})
-
-// Get all banners (admin)
-router.get('/admin/all', protect, admin, async (req, res) => {
-  try {
+    const banners = await Banner.find({ isActive: true }).sort({ order: 1 })
     res.json(banners)
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    next(error)
   }
 })
 
-// Create banner (admin)
-router.post('/', protect, admin, async (req, res) => {
+router.get('/admin/all', protect, admin, async (req, res, next) => {
   try {
-    const { title, subtitle, description, bgColor, bgImage, textColor, image, link, buttonText, isActive, order } = req.body
+    const banners = await Banner.find({}).sort({ order: 1 })
+    res.json(banners)
+  } catch (error) {
+    next(error)
+  }
+})
 
-    const banner = {
-      _id: Date.now().toString(),
-      id: Date.now().toString(),
-      title,
-      subtitle,
-      description: description || '',
-      bgColor: bgColor || '',
-      bgImage: bgImage || '',
-      textColor: textColor || '',
-      image,
-      link,
-      buttonText,
-      isActive: isActive !== false,
-      order: order || 0,
-      createdAt: new Date(),
+router.post('/', protect, admin, async (req, res, next) => {
+  try {
+    const payload = {
+      ...req.body,
+      id: req.body.id || Date.now().toString(),
+      isActive: req.body.isActive !== false,
+      order: req.body.order || 0,
     }
 
-    banners.push(banner)
-    res.status(201).json(banner)
+    const banner = new Banner(payload)
+    const createdBanner = await banner.save()
+    res.status(201).json(createdBanner)
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    next(error)
   }
 })
 
-// Bulk create banners (admin)
-router.post('/bulk', protect, admin, async (req, res) => {
+router.post('/bulk', protect, admin, async (req, res, next) => {
   try {
     const { banners: incoming } = req.body
     if (!Array.isArray(incoming) || incoming.length === 0) {
-      return res.status(400).json({ message: 'No banner records provided.' })
+      res.status(400)
+      throw new Error('No banner records provided.')
     }
 
-    const created = incoming.map((item) => {
-      const banner = {
-        _id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
-        id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
-        title: item.title,
-        subtitle: item.subtitle || '',
-        description: item.description || '',
-        bgColor: item.bgColor || item.backgroundColor || '',
-        bgImage: item.bgImage || item.backgroundImage || '',
-        textColor: item.textColor || item.textColour || item.text_color || '',
-        image: item.image || '',
-        link: item.link || '',
-        buttonText: item.buttonText || '',
-        isActive: item.isActive !== false,
-        order: item.order || 0,
-        createdAt: new Date(),
-      }
-      banners.push(banner)
-      return banner
-    })
+    const prepared = incoming.map((item) => ({
+      ...item,
+      id: item.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      subtitle: item.subtitle || '',
+      description: item.description || '',
+      bgColor: item.bgColor || item.backgroundColor || '',
+      bgImage: item.bgImage || item.backgroundImage || '',
+      textColor: item.textColor || item.textColour || item.text_color || '',
+      image: item.image || '',
+      link: item.link || '',
+      buttonText: item.buttonText || '',
+      isActive: item.isActive !== false,
+      order: item.order || 0,
+    }))
 
+    const created = await Banner.insertMany(prepared, { ordered: false })
     res.status(201).json({ count: created.length, banners: created })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    next(error)
   }
 })
 
-// Toggle banner active status (admin)
-router.patch('/:id/toggle', protect, admin, async (req, res) => {
+router.patch('/:id/toggle', protect, admin, async (req, res, next) => {
   try {
-    const banner = banners.find(b => b._id === req.params.id || b.id === req.params.id)
+    const banner = await Banner.findOne({ $or: [{ id: req.params.id }, { _id: req.params.id }] })
     if (!banner) {
-      return res.status(404).json({ message: 'Banner not found' })
+      res.status(404)
+      throw new Error('Banner not found')
     }
 
     banner.isActive = !banner.isActive
-    res.json({
-      id: banner.id,
-      isActive: banner.isActive,
-      message: `Banner ${banner.isActive ? 'activated' : 'deactivated'} successfully`
-    })
+    await banner.save()
+    res.json({ id: banner.id, isActive: banner.isActive, message: `Banner ${banner.isActive ? 'activated' : 'deactivated'} successfully` })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    next(error)
   }
 })
 
-// Update banner (admin)
-router.put('/:id', protect, admin, async (req, res) => {
+router.put('/:id', protect, admin, async (req, res, next) => {
   try {
-    const banner = banners.find(b => b._id === req.params.id || b.id === req.params.id)
-    if (!banner) {
-      return res.status(404).json({ message: 'Banner not found' })
+    const updatedBanner = await Banner.findOneAndUpdate(
+      { $or: [{ id: req.params.id }, { _id: req.params.id }] },
+      req.body,
+      { new: true }
+    )
+
+    if (!updatedBanner) {
+      res.status(404)
+      throw new Error('Banner not found')
     }
 
-    Object.assign(banner, req.body)
-    banner.updatedAt = new Date()
-
-    res.json(banner)
+    res.json(updatedBanner)
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    next(error)
   }
 })
 
-// Delete banner (admin)
-router.delete('/:id', protect, admin, async (req, res) => {
+router.delete('/:id', protect, admin, async (req, res, next) => {
   try {
-    const index = banners.findIndex(b => b._id === req.params.id || b.id === req.params.id)
-    if (index === -1) {
-      return res.status(404).json({ message: 'Banner not found' })
+    const deletedBanner = await Banner.findOneAndDelete({ $or: [{ id: req.params.id }, { _id: req.params.id }] })
+    if (!deletedBanner) {
+      res.status(404)
+      throw new Error('Banner not found')
     }
-
-    banners.splice(index, 1)
     res.json({ message: 'Banner deleted' })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    next(error)
   }
 })
 
