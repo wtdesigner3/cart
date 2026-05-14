@@ -1,14 +1,34 @@
-import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon, MagnifyingGlassIcon, ChevronDownIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems,
+  Transition,
+} from '@headlessui/react'
 import { Fragment, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../../features/user/userSlice.js'
 import api from '../../utils/api.js'
+import {
+  Search,
+  ShoppingBag,
+  User,
+  Menu as MenuIcon,
+  X,
+  ChevronDown,
+} from 'lucide-react'
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+const NAV_LINKS = [
+  { label: 'Home', to: '/' },
+  { label: 'Shop', to: '/products' },
+  { label: 'Deals', to: '/products' },
+  { label: 'About Us', to: '/' },
+  { label: 'Contact', to: '/' },
+]
 
 export default function Header() {
   const dispatch = useDispatch()
@@ -16,63 +36,75 @@ export default function Header() {
   const cartItems = useSelector((state) => state.cart.items)
   const userInfo = useSelector((state) => state.user.userInfo)
   const itemCount = cartItems.reduce((total, item) => total + (item.quantity ?? 1), 0)
+
   const [categories, setCategories] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
+  /* Fetch categories */
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await api.get('/categories')
-        setCategories(response.data)
-      } catch (error) {
-        console.error('Failed to load categories', error)
-      }
-    }
-
-    fetchCategories()
+    api
+      .get('/categories')
+      .then((r) => setCategories(r.data))
+      .catch(() => {})
   }, [])
 
-  const handleLogout = () => {
-    dispatch(logout())
-  }
+  /* Scroll shadow */
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handler, { passive: true })
+    return () => window.removeEventListener('scroll', handler)
+  }, [])
 
-  const handleSearch = (event) => {
-    event.preventDefault()
-    const query = searchTerm.trim()
-    if (query) {
-      navigate(`/products?search=${encodeURIComponent(query)}`)
-    } else {
-      navigate('/products')
-    }
+  const handleLogout = () => dispatch(logout())
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    const q = searchTerm.trim()
+    navigate(q ? `/products?search=${encodeURIComponent(q)}` : '/products')
+    setSearchOpen(false)
+    setSearchTerm('')
   }
 
   return (
-    <header className="bg-slate-50">
-      <div className="border-b border-slate-200 bg-white/90">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2 text-xs text-slate-600 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <a href="mailto:support@belibeli.com" className="font-medium text-slate-700 hover:text-primary-dark">
-              Email us
-            </a>
-            <span className="text-slate-500">for support or questions</span>
-          </div>
-          <div className="hidden sm:block text-slate-500">Fast shipping available nationwide</div>
-        </div>
-      </div>
-
-      <Disclosure as="nav" className="border-b border-slate-200 bg-white shadow-sm">
+    <header
+      className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${
+        scrolled ? 'shadow-[0_1px_0_#e5e4e2,0_4px_24px_rgba(0,0,0,0.06)]' : 'shadow-[0_1px_0_#e5e4e2]'
+      }`}
+    >
+      <Disclosure>
         {({ open }) => (
           <>
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-              <div className="flex items-center gap-4">
-                <Link to="/" className="text-2xl font-bold text-slate-900">
-                  BeliBeli.com
-                </Link>
+            {/* ── Main row ─────────────────────────────────────────────── */}
+            <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-4 sm:px-6 lg:px-8">
+              {/* Logo */}
+              <Link
+                to="/"
+                className="shrink-0 text-lg font-black uppercase tracking-[0.12em] text-[#0a0a0a]"
+              >
+                MINIMAL<span className="opacity-60">.</span>
+              </Link>
 
+              {/* Desktop nav */}
+              <nav className="hidden items-center gap-7 lg:flex">
+                {NAV_LINKS.map(({ label, to }) => (
+                  <Link
+                    key={label}
+                    to={to}
+                    className="group relative text-sm font-medium text-[#3d3d3d] transition-colors hover:text-[#0a0a0a]"
+                  >
+                    {label}
+                    <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-[#0a0a0a] transition-all duration-300 group-hover:w-full" />
+                  </Link>
+                ))}
+
+                {/* Categories mega-dropdown */}
                 <Menu as="div" className="relative">
-                  <MenuButton className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 focus:outline-none focus-ring-primary">
-                    All Category
-                    <ChevronDownIcon className="h-4 w-4" />
+                  <MenuButton className="group flex items-center gap-1 text-sm font-medium text-[#3d3d3d] transition-colors hover:text-[#0a0a0a] focus:outline-none">
+                    Categories
+                    <ChevronDown className="h-3.5 w-3.5 transition-transform ui-open:rotate-180" />
+                    <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-[#0a0a0a] transition-all duration-300 group-hover:w-full" />
                   </MenuButton>
 
                   <Transition
@@ -84,100 +116,77 @@ export default function Header() {
                     leaveFrom="opacity-100 translate-y-0"
                     leaveTo="opacity-0 translate-y-2"
                   >
-                    <MenuItems className="absolute left-0 z-30 mt-3 w-80 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl ring-1 ring-slate-200">
-                      <div className="space-y-3 max-h-[68vh] overflow-y-auto p-4 pr-2">
-                        <p className="text-xs uppercase tracking-[0.32em] text-slate-500">Browse categories</p>
+                    <MenuItems className="absolute left-0 z-30 mt-4 w-72 overflow-hidden rounded-2xl border border-[#e5e4e2] bg-white shadow-[0_16px_64px_rgba(0,0,0,0.1)] focus:outline-none">
+                      <div className="max-h-[60vh] overflow-y-auto p-2">
                         {categories.length > 0 ? (
                           categories.map((category) => (
-                            <MenuItem
-                              key={category.slug}
-                              as={Link}
-                              to={`/category/${category.slug}`}
-                              className={({ active }) =>
-                                classNames(
-                                  active ? 'bg-slate-100 text-slate-900' : 'text-slate-700',
-                                  'flex items-center gap-3 rounded-2xl px-3 py-3 transition'
-                                )
-                              }
-                            >
-                              <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
-                                {category.image ? (
-                                  <img
-                                    src={category.image}
-                                    alt={category.title}
-                                    className="h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  <span className="text-sm font-semibold uppercase text-slate-600">
-                                    {category.title?.charAt(0) || 'C'}
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold">{category.title}</p>
-                                <p className="mt-1 text-xs text-slate-500">{category.tagline || category.description || 'Shop this collection'}</p>
-                              </div>
+                            <MenuItem key={category.slug}>
+                              {({ active }) => (
+                                <Link
+                                  to={`/category/${category.slug}`}
+                                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${
+                                    active ? 'bg-[#f3f2f0]' : ''
+                                  }`}
+                                >
+                                  <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#f3f2f0]">
+                                    {category.image ? (
+                                      <img
+                                        src={category.image}
+                                        alt={category.title}
+                                        className="h-full w-full object-cover"
+                                      />
+                                    ) : (
+                                      <span className="text-xs font-bold text-[#0a0a0a]">
+                                        {category.title?.charAt(0) || 'C'}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-[#0a0a0a]">
+                                      {category.title}
+                                    </p>
+                                    <p className="truncate text-xs text-[#8a8a8a]">
+                                      {category.tagline || 'Shop this collection'}
+                                    </p>
+                                  </div>
+                                </Link>
+                              )}
                             </MenuItem>
                           ))
                         ) : (
-                          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                            Loading categories...
-                          </div>
+                          <p className="px-4 py-3 text-sm text-[#8a8a8a]">
+                            Loading categories…
+                          </p>
                         )}
                       </div>
                     </MenuItems>
                   </Transition>
                 </Menu>
+              </nav>
 
-                <div className="hidden md:flex items-center gap-3">
-                  <Link to="/" className="text-sm font-medium text-slate-600 hover:text-slate-900">
-                    Mitra BeliBeli
-                  </Link>
-                  <Link to="/" className="text-sm font-medium text-slate-600 hover:text-slate-900">
-                    About BeliBeli
-                  </Link>
-                  <Link to="/" className="text-sm font-medium text-slate-600 hover:text-slate-900">
-                    BeliBeli Care
-                  </Link>
-                  <Link to="/" className="text-sm font-medium text-slate-600 hover:text-slate-900">
-                    Promo
-                  </Link>
-                </div>
-              </div>
+              {/* Spacer */}
+              <div className="flex-1" />
 
-              <form onSubmit={handleSearch} className="order-last w-full md:order-none md:max-w-2xl">
-                <label htmlFor="site-search" className="sr-only">
-                  Search products
-                </label>
-                <div className="relative">
-                  <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="site-search"
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search product or brand here..."
-                    className="w-full rounded-full border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none focus-ring-primary"
-                  />
-                </div>
-              </form>
+              {/* Right icons */}
+              <div className="flex items-center gap-0.5">
+                {/* Search toggle */}
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen((p) => !p)}
+                  aria-label="Toggle search"
+                  className="hidden h-10 w-10 items-center justify-center rounded-full text-[#3d3d3d] transition-colors hover:bg-[#f3f2f0] hover:text-[#0a0a0a] md:flex"
+                >
+                  <Search className="h-[18px] w-[18px]" />
+                </button>
 
-              <div className="hidden items-center gap-3 md:ml-auto md:flex">
-                <Link to="/cart" className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
-                  <ShoppingBagIcon className="h-5 w-5" />
-                  {itemCount > 0 && (
-                    <span className="absolute -right-1 -top-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                      {itemCount}
-                    </span>
-                  )}
-                </Link>
-
+                {/* User / auth */}
                 {userInfo ? (
-                  <Menu as="div" className="relative">
-                    <MenuButton className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus-ring-primary">
-                      My Account
-                      <ChevronDownIcon className="h-4 w-4" />
+                  <Menu as="div" className="relative hidden md:block">
+                    <MenuButton
+                      aria-label="Account"
+                      className="flex h-10 w-10 items-center justify-center rounded-full text-[#3d3d3d] transition-colors hover:bg-[#f3f2f0] hover:text-[#0a0a0a] focus:outline-none"
+                    >
+                      <User className="h-[18px] w-[18px]" />
                     </MenuButton>
                     <Transition
                       as={Fragment}
@@ -188,107 +197,186 @@ export default function Header() {
                       leaveFrom="opacity-100 translate-y-0"
                       leaveTo="opacity-0 translate-y-1"
                     >
-                      <MenuItems className="absolute right-0 mt-2 w-48 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl ring-1 ring-slate-200">
-                        <div className="p-2">
-                          <MenuItem
-                            as={Link}
-                            to="/user/profile"
-                            className={({ active }) => classNames(active ? 'bg-slate-100' : '', 'block rounded-2xl px-4 py-3 text-sm text-slate-700')}
-                          >
-                            Profile
-                          </MenuItem>
-                          <MenuItem
-                            as={Link}
-                            to="/orders"
-                            className={({ active }) => classNames(active ? 'bg-slate-100' : '', 'block rounded-2xl px-4 py-3 text-sm text-slate-700')}
-                          >
-                            Orders
-                          </MenuItem>
-                          <MenuItem
-                            as="button"
-                            onClick={handleLogout}
-                            className={({ active }) => classNames(active ? 'bg-slate-100' : '', 'block w-full rounded-2xl px-4 py-3 text-left text-sm text-slate-700')}
-                          >
-                            Logout
+                      <MenuItems className="absolute right-0 mt-2 w-44 overflow-hidden rounded-2xl border border-[#e5e4e2] bg-white shadow-[0_16px_48px_rgba(0,0,0,0.1)] focus:outline-none">
+                        <div className="p-1.5">
+                          {[
+                            { label: 'Profile', to: '/user/profile' },
+                            { label: 'Orders', to: '/orders' },
+                          ].map(({ label, to }) => (
+                            <MenuItem key={label}>
+                              {({ active }) => (
+                                <Link
+                                  to={to}
+                                  className={`block rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
+                                    active
+                                      ? 'bg-[#f3f2f0] text-[#0a0a0a]'
+                                      : 'text-[#3d3d3d]'
+                                  }`}
+                                >
+                                  {label}
+                                </Link>
+                              )}
+                            </MenuItem>
+                          ))}
+                          <MenuItem>
+                            {({ active }) => (
+                              <button
+                                onClick={handleLogout}
+                                className={`block w-full rounded-xl px-4 py-2.5 text-left text-sm font-medium transition-colors ${
+                                  active
+                                    ? 'bg-[#f3f2f0] text-[#0a0a0a]'
+                                    : 'text-[#3d3d3d]'
+                                }`}
+                              >
+                                Logout
+                              </button>
+                            )}
                           </MenuItem>
                         </div>
                       </MenuItems>
                     </Transition>
                   </Menu>
                 ) : (
-                  <>
-                    <Link
-                      to="/register"
-                      className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
-                    >
-                      Sign Up
-                    </Link>
+                  <div className="hidden items-center gap-2 md:flex">
                     <Link
                       to="/login"
-                      className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      className="px-4 py-2 text-sm font-medium text-[#3d3d3d] transition-colors hover:text-[#0a0a0a]"
                     >
                       Login
                     </Link>
-                  </>
+                    <Link
+                      to="/register"
+                      className="bg-[#0a0a0a] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#3d3d3d]"
+                    >
+                      Sign Up
+                    </Link>
+                  </div>
                 )}
-              </div>
 
-              <div className="flex items-center md:hidden">
-                <DisclosureButton className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 focus:outline-none focus-ring-primary">
-                  {open ? <XMarkIcon className="h-5 w-5" /> : <Bars3Icon className="h-5 w-5" />}
+                {/* Cart */}
+                <Link
+                  to="/cart"
+                  aria-label={`Cart, ${itemCount} items`}
+                  className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#3d3d3d] transition-colors hover:bg-[#f3f2f0] hover:text-[#0a0a0a]"
+                >
+                  <ShoppingBag className="h-[18px] w-[18px]" />
+                  {itemCount > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#0a0a0a] text-[9px] font-bold text-white">
+                      {itemCount > 9 ? '9+' : itemCount}
+                    </span>
+                  )}
+                </Link>
+
+                {/* Mobile menu trigger */}
+                <DisclosureButton
+                  aria-label="Toggle menu"
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-[#3d3d3d] transition-colors hover:bg-[#f3f2f0] hover:text-[#0a0a0a] lg:hidden"
+                >
+                  {open ? (
+                    <X className="h-5 w-5" />
+                  ) : (
+                    <MenuIcon className="h-5 w-5" />
+                  )}
                 </DisclosureButton>
               </div>
             </div>
 
-            <DisclosurePanel className="border-t border-slate-200 bg-slate-50 px-4 py-4 md:hidden">
-              <div className="space-y-3">
-                <Link to="/" className="block rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50">
-                  Mitra BeliBeli
-                </Link>
-                <Link to="/" className="block rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50">
-                  About BeliBeli
-                </Link>
-                <Link to="/" className="block rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50">
-                  BeliBeli Care
-                </Link>
-                <Link to="/" className="block rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50">
-                  Promo
-                </Link>
-                <Link to="/cart" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                  <ShoppingBagIcon className="h-5 w-5" />
-                  Cart
-                  {itemCount > 0 && (
-                    <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[11px] font-semibold text-white">
-                      {itemCount}
-                    </span>
-                  )}
-                </Link>
-                {userInfo ? (
-                  <>
-                    <Link to="/user/profile" className="block rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50">
-                      Profile
-                    </Link>
-                    <Link to="/orders" className="block rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50">
-                      Orders
-                    </Link>
+            {/* ── Search bar (desktop) ─────────────────────────────────── */}
+            {searchOpen && (
+              <div className="hidden border-t border-[#e5e4e2] bg-white px-4 py-3 animate-slide-down sm:px-6 md:block lg:px-8">
+                <form onSubmit={handleSearch} className="mx-auto max-w-2xl">
+                  <div className="relative flex">
+                    <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a8a8a]" />
+                    <input
+                      autoFocus
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search products, brands, categories…"
+                      className="w-full border border-[#e5e4e2] bg-[#f9f8f6] py-3 pl-11 pr-28 text-sm text-[#0a0a0a] placeholder:text-[#8a8a8a] focus:border-[#0a0a0a] focus:outline-none"
+                    />
                     <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                      type="submit"
+                      className="absolute right-0 top-0 h-full bg-[#0a0a0a] px-5 text-[10px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:bg-[#3d3d3d]"
                     >
-                      Logout
+                      SEARCH
                     </button>
-                  </>
-                ) : (
-                  <>
-                    <Link to="/register" className="block rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary-dark">
-                      Sign Up
-                    </Link>
-                    <Link to="/login" className="block rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50">
-                      Login
-                    </Link>
-                  </>
-                )}
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* ── Mobile menu ──────────────────────────────────────────── */}
+            <DisclosurePanel className="border-t border-[#e5e4e2] bg-white lg:hidden">
+              <div className="space-y-1 px-4 py-4">
+                {/* Mobile search */}
+                <form onSubmit={handleSearch} className="mb-4">
+                  <div className="relative flex">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a8a8a]" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search products…"
+                      className="w-full border border-[#e5e4e2] bg-[#f3f2f0] py-3 pl-10 pr-4 text-sm text-[#0a0a0a] placeholder:text-[#8a8a8a] focus:border-[#0a0a0a] focus:outline-none"
+                    />
+                  </div>
+                </form>
+
+                {NAV_LINKS.map(({ label, to }) => (
+                  <DisclosureButton
+                    key={label}
+                    as={Link}
+                    to={to}
+                    className="block px-3 py-3 text-sm font-medium text-[#3d3d3d] transition-colors hover:bg-[#f3f2f0] hover:text-[#0a0a0a]"
+                  >
+                    {label}
+                  </DisclosureButton>
+                ))}
+
+                <div className="mt-4 border-t border-[#e5e4e2] pt-4 flex flex-col gap-2">
+                  {userInfo ? (
+                    <>
+                      <DisclosureButton
+                        as={Link}
+                        to="/user/profile"
+                        className="block px-3 py-3 text-sm font-medium text-[#3d3d3d] hover:bg-[#f3f2f0]"
+                      >
+                        Profile
+                      </DisclosureButton>
+                      <DisclosureButton
+                        as={Link}
+                        to="/orders"
+                        className="block px-3 py-3 text-sm font-medium text-[#3d3d3d] hover:bg-[#f3f2f0]"
+                      >
+                        Orders
+                      </DisclosureButton>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full px-3 py-3 text-left text-sm font-medium text-[#3d3d3d] hover:bg-[#f3f2f0]"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <DisclosureButton
+                        as={Link}
+                        to="/login"
+                        className="block border border-[#e5e4e2] px-3 py-3 text-center text-sm font-medium text-[#0a0a0a]"
+                      >
+                        Login
+                      </DisclosureButton>
+                      <DisclosureButton
+                        as={Link}
+                        to="/register"
+                        className="block bg-[#0a0a0a] px-3 py-3 text-center text-sm font-semibold text-white"
+                      >
+                        Sign Up
+                      </DisclosureButton>
+                    </>
+                  )}
+                </div>
               </div>
             </DisclosurePanel>
           </>

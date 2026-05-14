@@ -2,18 +2,37 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import useEmblaCarousel from 'embla-carousel-react'
-import { ArrowLeft, ArrowRight, ShoppingCart } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  ShoppingCart,
+  Truck,
+  RotateCcw,
+  ShieldCheck,
+  Headphones,
+  Heart,
+  Mail,
+} from 'lucide-react'
 import api, { getImageUrl } from '../utils/api.js'
 import { addCartItem } from '../features/cartadd/cartSlice.js'
 import Loader from '../components/Loader.jsx'
 
+/* ─── SERVICE HIGHLIGHTS ──────────────────────────────────────────────────── */
+const SERVICE_ITEMS = [
+  { icon: Truck,        title: 'FREE SHIPPING',   sub: 'On orders over $99'   },
+  { icon: RotateCcw,    title: 'EASY RETURNS',    sub: '30-day return policy' },
+  { icon: ShieldCheck,  title: 'SECURE PAYMENT',  sub: '100% secure checkout' },
+  { icon: Headphones,   title: '24/7 SUPPORT',    sub: "We're here to help"   },
+]
+
+/* ─── HERO CAROUSEL ───────────────────────────────────────────────────────── */
 function CarouselHero({ slides }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start', containScroll: 'trimSnaps' })
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   const scrollPrev = () => emblaApi && emblaApi.scrollPrev()
   const scrollNext = () => emblaApi && emblaApi.scrollNext()
-  const scrollTo = (index) => emblaApi && emblaApi.scrollTo(index)
+  const scrollTo  = (i) => emblaApi && emblaApi.scrollTo(i)
 
   useEffect(() => {
     if (!emblaApi) return
@@ -23,79 +42,55 @@ function CarouselHero({ slides }) {
     return () => emblaApi.off('select', onSelect)
   }, [emblaApi])
 
+  if (!slides.length) return null
+
   return (
-    <div className="relative overflow-hidden">
-      <div className="embla h-[520px] lg:h-[560px]" ref={emblaRef}>
+    <div className="relative overflow-hidden bg-[#f9f8f6]">
+      <div className="embla h-[500px] lg:h-[620px]" ref={emblaRef}>
         <div className="flex h-full">
           {slides.map((slide) => {
-            const hasExternalLink = typeof slide.link === 'string' && slide.link.startsWith('http')
+            const isDark = !!(slide.bgImage || slide.bgColor === '#000' || slide.bgColor?.startsWith('#0') || slide.bgColor?.startsWith('#1'))
             const linkPath = slide.link || '/products'
+            const isExternal = typeof slide.link === 'string' && slide.link.startsWith('http')
+            const CTA = isExternal
+              ? <a href={linkPath} target="_blank" rel="noreferrer" className="inline-block bg-[#0a0a0a] px-8 py-3 text-[10px] font-black uppercase tracking-[0.22em] text-white transition-colors hover:bg-[#3d3d3d]">{slide.buttonText || 'SHOP NOW'}</a>
+              : <Link to={linkPath} className="inline-block bg-[#0a0a0a] px-8 py-3 text-[10px] font-black uppercase tracking-[0.22em] text-white transition-colors hover:bg-[#3d3d3d]">{slide.buttonText || 'SHOP NOW'}</Link>
+
+            if (isDark) return (
+              <div key={slide._id || slide.title} className="relative min-w-full flex-shrink-0 h-full flex items-center overflow-hidden"
+                style={{ backgroundColor: slide.bgColor || '#0f0f0f', backgroundImage: slide.bgImage ? `url(${getImageUrl(slide.bgImage)})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                <div className="absolute inset-0 bg-black/55" />
+                <div className="relative z-10 mx-auto w-full max-w-7xl px-8 lg:px-16">
+                  {slide.subtitle && <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/60">{slide.subtitle}</p>}
+                  <h2 className="mt-4 max-w-2xl text-5xl font-black uppercase leading-[1.05] text-white lg:text-7xl">{slide.title || 'Discover your next favorite product'}</h2>
+                  {slide.description && <p className="mt-5 max-w-sm text-sm leading-7 text-white/60">{slide.description}</p>}
+                  <div className="mt-8 flex flex-wrap gap-4">{CTA}</div>
+                </div>
+                {slide.image && (
+                  <div className="absolute right-0 top-0 hidden h-full w-1/2 overflow-hidden lg:block">
+                    <img src={getImageUrl(slide.image)} alt={slide.title} className="h-full w-full object-cover opacity-60 mix-blend-luminosity" />
+                  </div>
+                )}
+              </div>
+            )
 
             return (
-              <div
-              key={slide._id || slide.id || slide.title}
-              className="min-w-full flex-shrink-0 grid h-full grid-cols-1 items-center gap-0 lg:grid-cols-[1fr_1fr]"
-              style={{
-                backgroundColor: slide.bgColor || undefined,
-                backgroundImage: slide.bgImage ? `url(${getImageUrl(slide.bgImage)})` : undefined,
-                backgroundSize: slide.bgImage ? 'cover' : undefined,
-                backgroundPosition: slide.bgImage ? 'center' : undefined,
-                backgroundRepeat: slide.bgImage ? 'no-repeat' : undefined,
-              }}
-            >
-                <div className="flex flex-col justify-center gap-6 px-4 py-8 sm:px-6 lg:px-12 lg:py-16 overflow-hidden">
-                  {slide.subtitle && (
-                    <span className="inline-flex rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white w-fit">
-                      {slide.subtitle}
-                    </span>
-                  )}
-                  <div className="space-y-4">
-                    <h2 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl" style={slide.textColor ? { color: slide.textColor } : undefined}>
-                      {slide.title || 'Discover your next favorite product'}
-                    </h2>
-                    {slide.description && <p className="max-w-xl text-lg leading-8" style={slide.textColor ? { color: slide.textColor } : undefined}>{slide.description}</p>}
-                  </div>
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                    {slide.buttonText && (
-                      hasExternalLink ? (
-                        <a
-                          href={linkPath}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-primary-dark sm:w-auto"
-                        >
-                          {slide.buttonText}
-                        </a>
-                      ) : (
-                        <Link
-                          to={linkPath}
-                          className="inline-flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-primary-dark sm:w-auto"
-                        >
-                          {slide.buttonText}
-                        </Link>
-                      )
-                    )}
-                    <Link
-                      to="/products"
-                      className="inline-flex w-full items-center justify-center rounded-full border border-slate-200 bg-white px-8 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 sm:w-auto"
-                    >
+              <div key={slide._id || slide.title} className="min-w-full flex-shrink-0 grid h-full grid-cols-1 lg:grid-cols-2" style={{ backgroundColor: slide.bgColor || '#f9f8f6' }}>
+                <div className="flex flex-col justify-center px-8 py-12 lg:px-16 lg:py-20">
+                  {slide.subtitle && <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-[#8a8a8a]">{slide.subtitle}</p>}
+                  <h2 className="mt-4 text-5xl font-black uppercase leading-[1.05] text-[#0a0a0a] lg:text-6xl xl:text-7xl">{slide.title || 'Discover your next favorite product'}</h2>
+                  {slide.description && <p className="mt-5 max-w-sm text-sm leading-7 text-[#3d3d3d]">{slide.description}</p>}
+                  <div className="mt-8 flex flex-wrap gap-4">
+                    {CTA}
+                    <Link to="/products" className="inline-block border border-[#0a0a0a] px-8 py-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#0a0a0a] transition-colors hover:bg-[#0a0a0a] hover:text-white">
                       Browse products
                     </Link>
                   </div>
                 </div>
-
-                <div className="flex h-full items-center justify-center overflow-hidden px-4 py-8 sm:px-6 lg:px-12 bg-transparent">
-                  {slide.image ? (
-                    <img
-                      src={getImageUrl(slide.image)}
-                      alt={slide.title}
-                      className="max-h-full w-full max-w-full object-contain"
-                    />
-                  ) : (
-                    <div className="flex h-full min-h-[340px] items-center justify-center p-8 text-center text-slate-500">
-                      Image unavailable
-                    </div>
-                  )}
+                <div className="hidden h-full overflow-hidden lg:block">
+                  {slide.image
+                    ? <img src={getImageUrl(slide.image)} alt={slide.title} className="h-full w-full object-contain object-center" />
+                    : <div className="flex h-full items-center justify-center bg-[#f3f2f0] text-sm text-[#8a8a8a]">No image</div>}
                 </div>
               </div>
             )
@@ -103,364 +98,371 @@ function CarouselHero({ slides }) {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 top-1/2 flex justify-between px-4">
-        <button
-          onClick={scrollPrev}
-          type="button"
-          className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 shadow-sm transition hover:bg-slate-100"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <button
-          onClick={scrollNext}
-          type="button"
-          className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 shadow-sm transition hover:bg-slate-100"
-        >
-          <ArrowRight className="h-5 w-5" />
-        </button>
-      </div>
+      {/* Arrows */}
+      <button onClick={scrollPrev} type="button" aria-label="Previous slide" className="absolute left-4 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center border border-[#e5e4e2] bg-white/90 text-[#0a0a0a] shadow-sm backdrop-blur-sm transition hover:bg-white">
+        <ArrowLeft className="h-4 w-4" />
+      </button>
+      <button onClick={scrollNext} type="button" aria-label="Next slide" className="absolute right-4 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center border border-[#e5e4e2] bg-white/90 text-[#0a0a0a] shadow-sm backdrop-blur-sm transition hover:bg-white">
+        <ArrowRight className="h-4 w-4" />
+      </button>
 
-      <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-2 px-4">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            type="button"
-            onClick={() => scrollTo(index)}
-            className={
-              selectedIndex === index
-                ? 'h-2.5 w-10 rounded-full bg-primary transition'
-                : 'h-2.5 w-2.5 rounded-full bg-slate-300 transition'
-            }
-            aria-label={`Go to slide ${index + 1}`}
-          />
+      {/* Dots */}
+      <div className="absolute bottom-5 left-0 right-0 z-20 flex items-center justify-center gap-2">
+        {slides.map((_, i) => (
+          <button key={i} type="button" onClick={() => scrollTo(i)} aria-label={`Go to slide ${i + 1}`}
+            className={`transition-all duration-300 ${selectedIndex === i ? 'h-[3px] w-8 bg-[#0a0a0a]' : 'h-[3px] w-3 bg-[#0a0a0a]/30'}`} />
         ))}
       </div>
     </div>
   )
 }
 
+/* ─── PRODUCT CARD ────────────────────────────────────────────────────────── */
+function ProductCard({ product, onAddToCart }) {
+  const [wishlisted, setWishlisted] = useState(false)
+  const hasDiscount = product.discountedPrice > 0 && product.discountedPrice < product.price
+  const salePrice   = hasDiscount ? product.discountedPrice : product.price
+  const fmt         = (v) => `₹${Number(v).toFixed(2)}`
+  const pid         = product.id || product._id
+
+  return (
+    <div className="group relative flex w-[240px] flex-shrink-0 flex-col bg-white sm:w-[260px]">
+      {/* Image area */}
+      <div className="relative overflow-hidden bg-[#f5f5f5]">
+        <Link to={`/product/${pid}`} className="block">
+          <img
+            src={getImageUrl(product.thumbnail)}
+            alt={product.title}
+            className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          />
+        </Link>
+
+        {/* Discount badge */}
+        {hasDiscount && (
+          <span className="absolute left-3 top-3 bg-[#0a0a0a] px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
+            -{Math.round((1 - salePrice / product.price) * 100)}%
+          </span>
+        )}
+
+        {/* Wishlist */}
+        <button
+          type="button"
+          aria-label="Add to wishlist"
+          onClick={() => setWishlisted((w) => !w)}
+          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center bg-white/95 text-[#0a0a0a] shadow-sm transition hover:bg-white"
+        >
+          <Heart className="h-[15px] w-[15px]" fill={wishlisted ? '#0a0a0a' : 'none'} strokeWidth={1.5} />
+        </button>
+
+        {/* Add-to-cart slide-up */}
+        <div className="absolute inset-x-0 bottom-0 translate-y-full bg-[#0a0a0a]/95 py-2.5 transition-transform duration-300 group-hover:translate-y-0">
+          <button
+            type="button"
+            onClick={() => onAddToCart(product)}
+            className="flex w-full items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white"
+          >
+            <ShoppingCart className="h-3.5 w-3.5" />
+            Add to cart
+          </button>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="flex flex-1 flex-col gap-1 border-x border-b border-[#ebebeb] px-3 py-3">
+        <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#aaa]">
+          {product.category || 'Collection'}
+        </p>
+        <Link to={`/product/${pid}`} className="text-sm font-semibold leading-snug text-[#0a0a0a] line-clamp-1 hover:underline underline-offset-2">
+          {product.title}
+        </Link>
+        <div className="mt-1 flex items-baseline gap-2">
+          <span className="text-base font-black text-[#0a0a0a]">{fmt(salePrice)}</span>
+          {hasDiscount && <span className="text-xs text-[#aaa] line-through">{fmt(product.price)}</span>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ─── PRODUCT CAROUSEL (shared between Featured & New Arrivals) ───────────── */
+function ProductCarousel({ products, onAddToCart }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: 'start', containScroll: 'trimSnaps' })
+  const scrollPrev = () => emblaApi && emblaApi.scrollPrev()
+  const scrollNext = () => emblaApi && emblaApi.scrollNext()
+
+  if (!products.length) return null
+
+  return (
+    <div className="relative">
+      <div className="overflow-hidden" ref={emblaRef}>
+        <div className="flex gap-4">
+          {products.map((product) => (
+            <ProductCard
+              key={product.id || product._id}
+              product={product}
+              onAddToCart={onAddToCart}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Nav */}
+      <div className="mt-5 flex justify-end gap-2">
+        <button onClick={scrollPrev} type="button" aria-label="Scroll left" className="flex h-9 w-9 items-center justify-center border border-[#e5e4e2] bg-white text-[#0a0a0a] transition hover:bg-[#f3f2f0]">
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        <button onClick={scrollNext} type="button" aria-label="Scroll right" className="flex h-9 w-9 items-center justify-center border border-[#e5e4e2] bg-white text-[#0a0a0a] transition hover:bg-[#f3f2f0]">
+          <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── SECTION HEADER ──────────────────────────────────────────────────────── */
+function SectionHeader({ label, title, linkTo, linkText = 'View all' }) {
+  return (
+    <div className="flex items-end justify-between gap-4">
+      <div>
+        {label && <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-[#8a8a8a]">{label}</p>}
+        {title && <h2 className="mt-1 text-2xl font-black uppercase tracking-tight text-[#0a0a0a] lg:text-3xl">{title}</h2>}
+      </div>
+      {linkTo && (
+        <Link to={linkTo} className="shrink-0 text-[10px] font-bold uppercase tracking-[0.22em] text-[#0a0a0a] underline-offset-4 hover:underline">
+          {linkText}
+        </Link>
+      )}
+    </div>
+  )
+}
+
+/* ─── HOME PAGE ───────────────────────────────────────────────────────────── */
 export default function Home() {
-  const [categories, setCategories] = useState([])
-  const [carouselSlides, setCarouselSlides] = useState([])
-  const [banners, setBanners] = useState([])
-  const [featured, setFeatured] = useState([])
+  const [categories,      setCategories]      = useState([])
+  const [carouselSlides,  setCarouselSlides]  = useState([])
+  const [banners,         setBanners]         = useState([])
+  const [featured,        setFeatured]        = useState([])
   const [homepageContent, setHomepageContent] = useState({
-    categoriesSection: {
-      label: 'Browse categories',
-      title: 'All Categories',
-      buttonText: 'View all categories →',
-    },
-    flashSaleSection: {
-      label: 'Flash Sale',
-      title: 'Shop hot deals before they disappear',
-    },
-    recommendationsSection: {
-      label: "Today's For You!",
-      title: 'Personalized recommendations',
-    },
-    promoSection: {
-      title: 'Lets Shop Beyond Boundaries',
-      subtitle:
-        'From the best seller collections to curated local storefronts, find what you love faster with trusted sellers and premium deals.',
-    },
+    categoriesSection:     { label: 'Browse categories', title: 'SHOP BY CATEGORY', buttonText: 'View all' },
+    flashSaleSection:      { label: 'This Week',         title: 'FEATURED PRODUCTS' },
+    recommendationsSection:{ label: "Editor's Pick",     title: 'NEW ARRIVALS'      },
+    promoSection:          { title: 'UP TO 50% OFF',     subtitle: 'On selected items. Hurry up!' },
   })
-  const [status, setStatus] = useState('loading')
-  const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState('Best Seller')
+  const [status,           setStatus]          = useState('loading')
+  const [error,            setError]           = useState('')
+  const [activeTab,        setActiveTab]       = useState('Best Seller')
+  const [newsletterEmail,  setNewsletterEmail] = useState('')
+  const [newsletterSent,   setNewsletterSent]  = useState(false)
 
-  const [flashEmblaRef, flashEmblaApi] = useEmblaCarousel({ loop: false, align: 'start', containScroll: 'trimSnaps' })
+  /* category carousel */
   const [categoryEmblaRef, categoryEmblaApi] = useEmblaCarousel({ loop: false, align: 'start', containScroll: 'trimSnaps' })
-
-  const dispatch = useDispatch()
-
-  const scrollPrev = () => flashEmblaApi && flashEmblaApi.scrollPrev()
-  const scrollNext = () => flashEmblaApi && flashEmblaApi.scrollNext()
   const scrollCategoryPrev = () => categoryEmblaApi && categoryEmblaApi.scrollPrev()
   const scrollCategoryNext = () => categoryEmblaApi && categoryEmblaApi.scrollNext()
 
-  const handleAddToCart = (product) => {
-    const item = { ...product, id: product.id || product._id }
-    dispatch(addCartItem(item))
-  }
+  const dispatch = useDispatch()
+  const handleAddToCart = (product) => dispatch(addCartItem({ ...product, id: product.id || product._id }))
 
   useEffect(() => {
-    const loadHomeData = async () => {
+    const load = async () => {
       try {
         setStatus('loading')
-        const [categoryRes, carouselRes, bannerRes, homepageRes, featuredRes] = await Promise.all([
+        const [catR, carR, banR, homeR, featR] = await Promise.all([
           api.get('/categories'),
           api.get('/carousel'),
           api.get('/banners'),
           api.get('/homepage'),
           api.get('/products?limit=12'),
         ])
-
-        setCategories(categoryRes.data)
-        setCarouselSlides(carouselRes.data)
-        setBanners(bannerRes.data)
+        setCategories(catR.data)
+        setCarouselSlides(carR.data)
+        setBanners(banR.data)
         setHomepageContent((prev) => ({
           ...prev,
-          ...homepageRes.data,
+          ...homeR.data,
+          categoriesSection:      { ...prev.categoriesSection,      ...(homeR.data.categoriesSection      || {}) },
+          flashSaleSection:       { ...prev.flashSaleSection,       ...(homeR.data.flashSaleSection       || {}) },
+          recommendationsSection: { ...prev.recommendationsSection, ...(homeR.data.recommendationsSection || {}) },
+          promoSection:           { ...prev.promoSection,           ...(homeR.data.promoSection           || {}) },
         }))
-        setFeatured(featuredRes.data)
+        setFeatured(featR.data)
         setStatus('succeeded')
-      } catch (fetchError) {
-        setError(fetchError.response?.data?.message || fetchError.message)
+      } catch (err) {
+        setError(err.response?.data?.message || err.message)
         setStatus('failed')
       }
     }
-
-    loadHomeData()
+    load()
   }, [])
 
-  if (status === 'loading') {
-    return <Loader message="Loading homepage data..." />
-  }
-
-  if (status === 'failed') {
-    return (
-      <div className="mx-auto max-w-5xl px-4 py-16 text-center text-lg text-red-600">
-        {error || 'Unable to load homepage content. Please try again later.'}
-      </div>
-    )
-  }
-
-  const heroSlides = [...(banners.length > 0 ? banners : carouselSlides)].sort(
-    (a, b) => (a.order ?? 0) - (b.order ?? 0)
+  if (status === 'loading') return <Loader message="Loading homepage data..." />
+  if (status === 'failed')  return (
+    <div className="mx-auto max-w-5xl px-4 py-16 text-center text-lg text-red-600">
+      {error || 'Unable to load homepage content. Please try again later.'}
+    </div>
   )
 
-  const saleProducts = featured.slice(0, 6)
-  const recommendationTabs = ['Best Seller', 'Keep Stylish', 'Special Discount', 'Official Store', 'Coveted Product']
+  const heroSlides = [...(banners.length > 0 ? banners : carouselSlides)].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
+  const recommendationTabs = ['Best Seller', 'Keep Stylish', 'Special Discount', 'Official Store', 'Coveted Product']
   const filteredRecommendations = featured.filter((product, index) => {
-    if (activeTab === 'Best Seller') return index < 8
-    if (activeTab === 'Keep Stylish') return ['clothing', 'mens', 'women', 'shoes', 'fashion'].some((term) => product.category?.toLowerCase().includes(term)) || index < 4
-    if (activeTab === 'Special Discount') return product.discountedPrice > 0 || index < 4
-    if (activeTab === 'Official Store') return index % 2 === 0
+    if (activeTab === 'Best Seller')      return index < 10
+    if (activeTab === 'Keep Stylish')     return ['clothing','mens','women','shoes','fashion'].some((t) => product.category?.toLowerCase().includes(t)) || index < 6
+    if (activeTab === 'Special Discount') return product.discountedPrice > 0 || index < 6
+    if (activeTab === 'Official Store')   return index % 2 === 0
     return index >= 2
   })
 
-  const formatCurrency = (value) => `₹${value.toFixed(2)}`
-
   return (
-    <div className="bg-slate-50 text-slate-900">
-      <section className="w-full">
+    <div className="bg-white text-[#0a0a0a]">
+
+      {/* ── 1. HERO ─────────────────────────────────────────────────────────── */}
+      <section>
         <CarouselHero slides={heroSlides} />
       </section>
 
-      <section className="bg-slate-50 py-6">
+      {/* ── 2. SERVICE BAR ──────────────────────────────────────────────────── */}
+      <section className="border-b border-t border-[#e5e4e2] bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-[36px] border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.35em] text-slate-500">{homepageContent.categoriesSection.label}</p>
-                <h2 className="mt-2 text-2xl font-bold text-slate-900">{homepageContent.categoriesSection.title}</h2>
-              </div>
-              <Link to="/products" className="text-sm font-semibold text-primary hover:text-primary-dark">
-                {homepageContent.categoriesSection.buttonText}
-              </Link>
-            </div>
-            <div className="mt-4 overflow-hidden rounded-[28px] border border-slate-200 bg-slate-50">
-              <div className="embla" ref={categoryEmblaRef}>
-                <div className="flex gap-4 p-4">
-                  {categories.slice(0, 9).map((category) => (
-                    <Link
-                      key={category.slug}
-                      to={`/category/${category.slug}`}
-                      className="min-w-[260px] flex-shrink-0 overflow-hidden rounded-[32px] bg-gradient-to-br from-indigo-50 via-white to-slate-100 p-5 shadow-xl transition hover:-translate-y-1"
-                    >
-                      <div className="flex h-full flex-col justify-between gap-4">
-                        <div className="space-y-4 text-left">
-                          <p className="text-xs uppercase tracking-[0.35em] text-indigo-600">{category.tagline || category.subtitle || 'Shop this collection'}</p>
-                          <h3 className="text-2xl font-bold text-slate-900">{category.title}</h3>
-                        </div>
-                        <div className="flex items-end justify-between gap-4">
-                          <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm">
-                            Go to
-                            <ArrowRight className="h-4 w-4" />
-                          </span>
-                          <div className="relative h-24 w-24 overflow-hidden rounded-[28px] bg-slate-100">
-                            {category.image ? (
-                              <img src={getImageUrl(category.image)} alt={category.title} className="h-full w-full object-cover" />
-                            ) : (
-                              <div className="flex h-full items-center justify-center text-slate-500">No image</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+          <div className="grid grid-cols-2 divide-x divide-[#e5e4e2] lg:grid-cols-4">
+            {SERVICE_ITEMS.map(({ icon: Icon, title, sub }) => (
+              <div key={title} className="flex flex-col items-center gap-2.5 px-4 py-6 text-center sm:flex-row sm:text-left lg:px-8">
+                <div className="shrink-0"><Icon className="h-5 w-5 text-[#0a0a0a]" strokeWidth={1.5} /></div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0a0a0a]">{title}</p>
+                  <p className="mt-0.5 text-[11px] text-[#8a8a8a]">{sub}</p>
                 </div>
               </div>
-              <div className="mt-2 flex justify-end gap-3 px-4 pb-4">
-                <button
-                  onClick={scrollCategoryPrev}
-                  type="button"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={scrollCategoryNext}
-                  type="button"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
-                >
-                  <ArrowRight className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            {homepageContent.flashSaleSection.label && (
-              <p className="text-sm font-semibold uppercase tracking-[0.35em] text-rose-600">{homepageContent.flashSaleSection.label}</p>
-            )}
-            {homepageContent.flashSaleSection.title && (
-              <h2 className="mt-2 text-3xl font-bold text-slate-900">{homepageContent.flashSaleSection.title}</h2>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-6 overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-sm">
-          <div className="embla" ref={flashEmblaRef}>
-            <div className="flex gap-4 p-4">
-              {saleProducts.map((product) => {
-                const hasDiscount = product.discountedPrice > 0 && product.discountedPrice < product.price
-                const salePrice = hasDiscount ? product.discountedPrice : product.price
-
-                return (
-                  <Link
-                    key={product.id || product._id}
-                    to={`/product/${product.id || product._id}`}
-                    className="group min-w-[280px] flex-shrink-0 overflow-hidden rounded-[32px] border border-slate-200 bg-slate-50 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
-                  >
-                    <div className="relative overflow-hidden bg-white">
-                      <img src={getImageUrl(product.thumbnail)} alt={product.title} className="h-56 w-full object-cover transition duration-300 group-hover:scale-105" />
-                      <div className="absolute inset-x-0 top-4 flex items-center justify-between px-4">
-                        <span className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-900">Flash</span>
-                        <span className="rounded-full bg-slate-900/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-white">{product.stock || 0} left</span>
-                      </div>
-                    </div>
-                    <div className="space-y-3 p-4">
-                      <p className="text-xs uppercase tracking-[0.28em] text-indigo-600">{product.category || 'Trending'}</p>
-                      <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">{product.title}</h3>
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          {hasDiscount && <p className="text-sm text-slate-500 line-through">{formatCurrency(product.price)}</p>}
-                          <p className="text-2xl font-bold text-slate-900">{formatCurrency(salePrice)}</p>
-                        </div>
-                        <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-rose-600">{hasDiscount ? `${Math.round((1 - salePrice / product.price) * 100)}% off` : 'Deal'}</span>
-                      </div>
-                      <p className="text-xs text-slate-500">Limited stock available</p>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 flex justify-end gap-3">
-          <button
-            onClick={scrollPrev}
-            type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <button
-            onClick={scrollNext}
-            type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            <ArrowRight className="h-5 w-5" />
-          </button>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            {homepageContent.recommendationsSection.label && (
-              <p className="text-sm uppercase tracking-[0.35em] text-indigo-600">{homepageContent.recommendationsSection.label}</p>
-            )}
-            {homepageContent.recommendationsSection.title && (
-              <h2 className="mt-2 text-3xl font-bold text-slate-900">{homepageContent.recommendationsSection.title}</h2>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {recommendationTabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeTab === tab ? 'bg-slate-900 text-white' : 'bg-white text-slate-800 shadow-sm hover:bg-slate-100'}`}
-              >
-                {tab}
-              </button>
             ))}
           </div>
         </div>
+      </section>
 
-        <div className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          {filteredRecommendations.slice(0, 8).map((product) => (
-            <Link
-              key={product.id || product._id}
-              to={`/product/${product.id || product._id}`}
-              className="group overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="relative overflow-hidden bg-slate-100">
-                <img src={getImageUrl(product.thumbnail)} alt={product.title} className="h-56 w-full object-cover transition duration-300 group-hover:scale-105" />
-                <button
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    handleAddToCart(product)
-                  }}
-                  className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm transition hover:bg-white"
-                >
-                  <ShoppingCart className="h-5 w-5" />
+      {/* ── 3. SHOP BY CATEGORY ─────────────────────────────────────────────── */}
+      {categories.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <SectionHeader
+            label={homepageContent.categoriesSection.label}
+            title={homepageContent.categoriesSection.title || 'SHOP BY CATEGORY'}
+            linkTo="/products"
+            linkText={homepageContent.categoriesSection.buttonText || 'View all'}
+          />
+
+          <div className="mt-8 overflow-hidden" ref={categoryEmblaRef}>
+            <div className="flex gap-4">
+              {categories.slice(0, 12).map((cat) => (
+                <Link key={cat.slug} to={`/category/${cat.slug}`} className="group flex min-w-[110px] flex-shrink-0 flex-col items-center gap-3 sm:min-w-[120px]">
+                  <div className="relative h-[110px] w-[110px] overflow-hidden border border-[#e5e4e2] bg-[#f9f8f6] transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] sm:h-[120px] sm:w-[120px]">
+                    {cat.image
+                      ? <img src={getImageUrl(cat.image)} alt={cat.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      : <div className="flex h-full items-center justify-center text-xl font-black text-[#0a0a0a]">{cat.title?.charAt(0)}</div>}
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#0a0a0a] transition-colors group-hover:text-[#555]">
+                    {cat.title}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-5 flex justify-end gap-2">
+            <button onClick={scrollCategoryPrev} type="button" aria-label="Scroll categories left"  className="flex h-9 w-9 items-center justify-center border border-[#e5e4e2] bg-white text-[#0a0a0a] transition hover:bg-[#f3f2f0]"><ArrowLeft  className="h-4 w-4" /></button>
+            <button onClick={scrollCategoryNext} type="button" aria-label="Scroll categories right" className="flex h-9 w-9 items-center justify-center border border-[#e5e4e2] bg-white text-[#0a0a0a] transition hover:bg-[#f3f2f0]"><ArrowRight className="h-4 w-4" /></button>
+          </div>
+        </section>
+      )}
+
+      {/* ── 4. FEATURED PRODUCTS ────────────────────────────────────────────── */}
+      {featured.length > 0 && (
+        <section className="bg-[#f9f8f6] py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <SectionHeader
+              label={homepageContent.flashSaleSection.label}
+              title={homepageContent.flashSaleSection.title || 'FEATURED PRODUCTS'}
+              linkTo="/products"
+            />
+            <div className="mt-8">
+              <ProductCarousel products={featured.slice(0, 10)} onAddToCart={handleAddToCart} />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── 5. PROMO BANNER ─────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-[#0f0f0f]">
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1400&q=80)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start gap-6 px-8 py-20 lg:flex-row lg:items-center lg:justify-between lg:px-16 lg:py-24">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/50">Limited Time Offer</p>
+            <h2 className="mt-3 text-5xl font-black uppercase leading-[1.05] text-white lg:text-7xl">
+              {homepageContent.promoSection.title || 'UP TO 50% OFF'}
+            </h2>
+            <p className="mt-3 text-sm text-white/50">{homepageContent.promoSection.subtitle || 'On selected items. Hurry up!'}</p>
+          </div>
+          <Link to="/products" className="shrink-0 inline-block border border-white px-10 py-4 text-[10px] font-black uppercase tracking-[0.28em] text-white transition-colors hover:bg-white hover:text-[#0a0a0a]">
+            SHOP NOW
+          </Link>
+        </div>
+      </section>
+
+      {/* ── 6. NEW ARRIVALS ─────────────────────────────────────────────────── */}
+      {featured.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <SectionHeader
+              label={homepageContent.recommendationsSection.label}
+              title={homepageContent.recommendationsSection.title || 'NEW ARRIVALS'}
+            />
+            {/* Tabs */}
+            <div className="flex flex-wrap gap-2">
+              {recommendationTabs.map((tab) => (
+                <button key={tab} type="button" onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors ${activeTab === tab ? 'bg-[#0a0a0a] text-white' : 'border border-[#e5e4e2] bg-white text-[#3d3d3d] hover:border-[#0a0a0a]'}`}>
+                  {tab}
                 </button>
-              </div>
-              <div className="space-y-3 p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{product.title}</p>
-                    <p className="text-xs uppercase tracking-[0.28em] text-indigo-600">{product.category || 'Style'}</p>
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">{product.rating?.toFixed(1) || '4.5'}</span>
-                </div>
-                <p className="text-sm text-slate-500 line-clamp-2">{product.description || 'High quality and stylish product for every occasion.'}</p>
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    {product.discountedPrice && product.discountedPrice < product.price && (
-                      <p className="text-sm text-slate-500 line-through">{formatCurrency(product.price)}</p>
-                    )}
-                    <p className="text-xl font-bold text-slate-900">{formatCurrency(product.discountedPrice && product.discountedPrice < product.price ? product.discountedPrice : product.price)}</p>
-                  </div>
-                  <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary">{product.stock || 0}+ sold</span>
-                </div>
-              </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <ProductCarousel products={filteredRecommendations.slice(0, 10)} onAddToCart={handleAddToCart} />
+          </div>
+
+          <div className="mt-8 flex justify-center">
+            <Link to="/products" className="inline-block border border-[#0a0a0a] px-12 py-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#0a0a0a] transition-colors hover:bg-[#0a0a0a] hover:text-white">
+              View All Products
             </Link>
-          ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── 7. NEWSLETTER ───────────────────────────────────────────────────── */}
+      <section className="bg-[#0f0f0f]">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+          <div className="flex flex-col items-center gap-8 lg:flex-row lg:justify-between">
+            <div className="flex items-center gap-4">
+              <Mail className="h-6 w-6 shrink-0 text-white/30" strokeWidth={1.5} />
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/40">Stay in the loop</p>
+                <h2 className="mt-1 text-lg font-black uppercase tracking-tight text-white lg:text-xl">Subscribe to our newsletter</h2>
+                <p className="mt-1 text-xs text-white/40">Get the latest updates on new arrivals and exclusive offers.</p>
+              </div>
+            </div>
+
+            {newsletterSent ? (
+              <p className="text-sm font-semibold text-white/70">✓ You're subscribed! Thank you.</p>
+            ) : (
+              <form onSubmit={(e) => { e.preventDefault(); if (newsletterEmail.trim()) { setNewsletterSent(true); setNewsletterEmail('') } }} className="flex w-full max-w-md">
+                <input type="email" required value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} placeholder="Enter your email"
+                  className="flex-1 border border-white/10 bg-white/5 px-5 py-3 text-sm text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none" />
+                <button type="submit" className="shrink-0 bg-white px-6 py-3 text-[10px] font-black uppercase tracking-[0.22em] text-[#0a0a0a] transition-colors hover:bg-[#f3f2f0]">
+                  Subscribe
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-[40px] bg-slate-950 px-8 py-14 text-center text-white shadow-2xl shadow-black/20">
-          <p className="text-sm uppercase tracking-[0.35em] text-primary-soft">BeliBeli.com</p>
-          {homepageContent.promoSection.title && (
-            <h2 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">{homepageContent.promoSection.title}</h2>
-          )}
-          {homepageContent.promoSection.subtitle && (
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-300">{homepageContent.promoSection.subtitle}</p>
-          )}
-        </div>
-      </section>
     </div>
   )
 }
