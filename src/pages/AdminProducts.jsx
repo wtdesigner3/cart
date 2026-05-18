@@ -27,6 +27,8 @@ const initialProductForm = {
   stock: 0,
   brand: '',
   sku: '',
+  homepageSection: 'none',
+  homepageTabs: [],
   isActive: true,
 }
 
@@ -34,6 +36,7 @@ export default function AdminProducts() {
   const token = useSelector((state) => state.user.token)
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
+  const [recommendationTabs, setRecommendationTabs] = useState([])
   const [form, setForm] = useState(initialProductForm)
   const [editingId, setEditingId] = useState(null)
   const [imageFile, setImageFile] = useState(null)
@@ -54,16 +57,22 @@ export default function AdminProducts() {
   const location = useLocation()
   const progressIntervalRef = useRef(null)
   const headers = authHeaders(token)
+  const tabLabelMap = useMemo(
+    () => recommendationTabs.reduce((map, tab) => ({ ...map, [tab.key]: tab.label }), {}),
+    [recommendationTabs],
+  )
 
   const fetchData = async () => {
     setPageLoading(true)
     try {
-      const [productRes, categoryRes] = await Promise.all([
+      const [productRes, categoryRes, homepageRes] = await Promise.all([
         api.get('/products?includeInactive=true'),
         api.get('/categories'),
+        api.get('/homepage'),
       ])
       setProducts(productRes.data)
       setCategories(categoryRes.data)
+      setRecommendationTabs(homepageRes.data.recommendationTabs || [])
       setSelectedProductIds([])
     } catch (error) {
       toast.error(error.response?.data?.message || error.message)
@@ -114,6 +123,18 @@ export default function AdminProducts() {
     }))
   }
 
+  const handleHomepageTabsChange = (key) => {
+    setForm((prev) => {
+      const homepageTabs = prev.homepageTabs || []
+      return {
+        ...prev,
+        homepageTabs: homepageTabs.includes(key)
+          ? homepageTabs.filter((tab) => tab !== key)
+          : [...homepageTabs, key],
+      }
+    })
+  }
+
   const handleEditorChange = (event, editor) => {
     setForm((prev) => ({ ...prev, description: editor.getData() }))
   }
@@ -152,6 +173,8 @@ export default function AdminProducts() {
       stock: product.stock || 0,
       brand: product.brand || '',
       sku: product.sku || '',
+      homepageSection: product.homepageSection || 'none',
+      homepageTabs: product.homepageTabs || [],
       isActive: product.isActive ?? true,
     })
     setEditingId(product.id || product._id)
@@ -269,6 +292,7 @@ export default function AdminProducts() {
         thumbnail: imageUrl,
         tags: form.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
         discountPercentage: form.discountPercentage || (form.mrp > calculatedPrice ? Math.round(((form.mrp - calculatedPrice) / form.mrp) * 100) : 0),
+        homepageTabs: form.homepageTabs || [],
       }
       if (editingId) {
         await api.put(`/products/${editingId}`, payload, headers)
@@ -302,6 +326,10 @@ export default function AdminProducts() {
       unit: row.unit || 'pcs',
       tagline: row.tagline || '',
       tags: typeof row.tags === 'string' ? row.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [],
+      homepageSection: ['flashSale', 'recommendations'].includes(row.homepageSection) ? row.homepageSection : 'none',
+      homepageTabs: typeof row.homepageTabs === 'string'
+        ? row.homepageTabs.split(',').map((tab) => tab.trim()).filter(Boolean)
+        : [],
       thumbnail: row.thumbnail || row.image || '',
       stock: Number(row.stock || row.quantity || 0),
       brand: row.brand || '',
@@ -712,6 +740,46 @@ export default function AdminProducts() {
               </div>
             </div>
 
+            {/* Homepage Placement */}
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
+              <h4 className="font-semibold text-gray-900 mb-4">Homepage Placement</h4>
+              <div className="grid gap-6 sm:grid-cols-2">
+                <label className="block">
+                  <span className="text-sm font-semibold text-gray-700">Homepage Section</span>
+                  <select
+                    name="homepageSection"
+                    value={form.homepageSection}
+                    onChange={handleProductChange}
+                    className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                  >
+                    <option value="none">None</option>
+                    <option value="flashSale">Flash Sale</option>
+                    <option value="recommendations">Recommendations</option>
+                  </select>
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="text-sm font-semibold text-gray-700">Recommendation Tabs</span>
+                  <div className="mt-2 grid gap-2 rounded-lg border border-gray-300 bg-white p-4">
+                    {(recommendationTabs.length > 0 ? recommendationTabs : []).map((tab) => (
+                      <label key={tab.key} className="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={form.homepageTabs.includes(tab.key)}
+                          onChange={() => handleHomepageTabsChange(tab.key)}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">{tab.label}</span>
+                      </label>
+                    ))}
+                    {recommendationTabs.length === 0 && (
+                      <p className="text-sm text-gray-500">Create recommendation tabs in Homepage Content before assigning products.</p>
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">Assign this product to any homepage tabs. Flash Sale items can still appear in recommendations when selected.</p>
+                </label>
+              </div>
+            </div>
+
             {/* Description */}
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
               <label className="block">
@@ -868,6 +936,7 @@ export default function AdminProducts() {
                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Category</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Inventory</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Price</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Homepage</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Status</th>
                     <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-600">Actions</th>
                   </tr>
@@ -915,6 +984,16 @@ export default function AdminProducts() {
                         </td>
                         <td className="px-6 py-4 text-left align-top">
                           <p className="font-semibold text-gray-900">₹{product.price?.toFixed(2)}</p>
+                        </td>
+                        <td className="px-6 py-4 text-left align-top">
+                          <div className="space-y-1">
+                            <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                              {product.homepageSection === 'flashSale' ? 'Flash Sale' : product.homepageSection === 'recommendations' ? 'Recommendations' : 'None'}
+                            </span>
+                            {product.homepageTabs?.length > 0 && (
+                              <p className="text-xs text-gray-500">Tabs: {product.homepageTabs.map((tab) => tabLabelMap[tab] || tab).join(', ')}</p>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-left align-top">
                           <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${product.isActive ?? true ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>

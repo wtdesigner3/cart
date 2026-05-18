@@ -24,6 +24,8 @@ const productSchema = new mongoose.Schema(
     availabilityStatus: String,
     images: [String],
     thumbnail: String,
+    homepageSection: { type: String, enum: ['none', 'flashSale', 'recommendations'], default: 'none' },
+    homepageTabs: { type: [String], default: [] },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true },

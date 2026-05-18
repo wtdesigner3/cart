@@ -52,7 +52,7 @@ export default function Product() {
                 <img
                   alt={product.title}
                   src={getImageUrl(product.thumbnail)}
-                  className="aspect-square w-full object-cover transition duration-300 group-hover:scale-105"
+                  className="aspect-square w-full object-contain transition duration-300 group-hover:scale-105"
                 />
               </Link>
               <div className="p-4">

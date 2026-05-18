@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import useEmblaCarousel from 'embla-carousel-react'
@@ -68,7 +68,7 @@ function CarouselHero({ slides }) {
                 </div>
                 {slide.image && (
                   <div className="absolute right-0 top-0 hidden h-full w-1/2 overflow-hidden lg:block">
-                    <img src={getImageUrl(slide.image)} alt={slide.title} className="h-full w-full object-cover opacity-60 mix-blend-luminosity" />
+                    <img src={getImageUrl(slide.image)} alt={slide.title} className="h-full w-full object-contain opacity-60 mix-blend-luminosity" />
                   </div>
                 )}
               </div>
@@ -133,7 +133,7 @@ function ProductCard({ product, onAddToCart }) {
           <img
             src={getImageUrl(product.thumbnail)}
             alt={product.title}
-            className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            className="aspect-[3/4] w-full object-contain transition-transform duration-500 group-hover:scale-[1.04]"
           />
         </Link>
 
@@ -243,14 +243,21 @@ export default function Home() {
   const [banners,         setBanners]         = useState([])
   const [featured,        setFeatured]        = useState([])
   const [homepageContent, setHomepageContent] = useState({
-    categoriesSection:     { label: 'Browse categories', title: 'SHOP BY CATEGORY', buttonText: 'View all' },
-    flashSaleSection:      { label: 'This Week',         title: 'FEATURED PRODUCTS' },
-    recommendationsSection:{ label: "Editor's Pick",     title: 'NEW ARRIVALS'      },
-    promoSection:          { title: 'UP TO 50% OFF',     subtitle: 'On selected items. Hurry up!' },
+    categoriesSection:      { label: 'Browse categories', title: 'SHOP BY CATEGORY', buttonText: 'View all' },
+    flashSaleSection:       { label: 'This Week', title: 'FEATURED PRODUCTS' },
+    recommendationsSection: { label: "Today's For You!", title: 'NEW ARRIVALS' },
+    promoSection:           { badgeLabel: 'Limited Time Offer', title: 'UP TO 50% OFF', subtitle: 'On selected items. Hurry up!' },
+    recommendationTabs: [
+      { key: 'bestSeller', label: 'Best Seller' },
+      { key: 'keepStylish', label: 'Keep Stylish' },
+      { key: 'specialDiscount', label: 'Special Discount' },
+      { key: 'officialStore', label: 'Official Store' },
+      { key: 'covetedProduct', label: 'Coveted Product' },
+    ],
   })
   const [status,           setStatus]          = useState('loading')
   const [error,            setError]           = useState('')
-  const [activeTab,        setActiveTab]       = useState('Best Seller')
+  const [activeTab,        setActiveTab]       = useState('bestSeller')
   const [newsletterEmail,  setNewsletterEmail] = useState('')
   const [newsletterSent,   setNewsletterSent]  = useState(false)
 
@@ -271,11 +278,21 @@ export default function Home() {
           api.get('/carousel'),
           api.get('/banners'),
           api.get('/homepage'),
-          api.get('/products?limit=12'),
+          api.get('/products?limit=100'),
         ])
         setCategories(catR.data)
         setCarouselSlides(carR.data)
         setBanners(banR.data)
+        const updatedTabs = (homeR.data.recommendationTabs && homeR.data.recommendationTabs.length > 0)
+          ? homeR.data.recommendationTabs
+          : [
+            { key: 'bestSeller', label: 'Best Seller' },
+            { key: 'keepStylish', label: 'Keep Stylish' },
+            { key: 'specialDiscount', label: 'Special Discount' },
+            { key: 'officialStore', label: 'Official Store' },
+            { key: 'covetedProduct', label: 'Coveted Product' },
+          ]
+
         setHomepageContent((prev) => ({
           ...prev,
           ...homeR.data,
@@ -283,7 +300,15 @@ export default function Home() {
           flashSaleSection:       { ...prev.flashSaleSection,       ...(homeR.data.flashSaleSection       || {}) },
           recommendationsSection: { ...prev.recommendationsSection, ...(homeR.data.recommendationsSection || {}) },
           promoSection:           { ...prev.promoSection,           ...(homeR.data.promoSection           || {}) },
+          recommendationTabs:     updatedTabs,
         }))
+
+        setActiveTab((currentTab) =>
+          currentTab && updatedTabs.some((tab) => tab.key === currentTab)
+            ? currentTab
+            : updatedTabs[0]?.key || 'bestSeller',
+        )
+
         setFeatured(featR.data)
         setStatus('succeeded')
       } catch (err) {
@@ -294,6 +319,20 @@ export default function Home() {
     load()
   }, [])
 
+  const heroSlides = [...(banners.length > 0 ? banners : carouselSlides)].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+  const recommendationTabs = useMemo(() => {
+    return homepageContent.recommendationTabs && homepageContent.recommendationTabs.length > 0
+      ? homepageContent.recommendationTabs
+      : [
+        { key: 'bestSeller', label: 'Best Seller' },
+        { key: 'keepStylish', label: 'Keep Stylish' },
+        { key: 'specialDiscount', label: 'Special Discount' },
+        { key: 'officialStore', label: 'Official Store' },
+        { key: 'covetedProduct', label: 'Coveted Product' },
+      ]
+  }, [homepageContent.recommendationTabs])
+
   if (status === 'loading') return <Loader message="Loading homepage data..." />
   if (status === 'failed')  return (
     <div className="mx-auto max-w-5xl px-4 py-16 text-center text-lg text-red-600">
@@ -301,15 +340,10 @@ export default function Home() {
     </div>
   )
 
-  const heroSlides = [...(banners.length > 0 ? banners : carouselSlides)].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  const flashSaleProducts = featured.filter((product) => product.homepageSection === 'flashSale')
 
-  const recommendationTabs = ['Best Seller', 'Keep Stylish', 'Special Discount', 'Official Store', 'Coveted Product']
-  const filteredRecommendations = featured.filter((product, index) => {
-    if (activeTab === 'Best Seller')      return index < 10
-    if (activeTab === 'Keep Stylish')     return ['clothing','mens','women','shoes','fashion'].some((t) => product.category?.toLowerCase().includes(t)) || index < 6
-    if (activeTab === 'Special Discount') return product.discountedPrice > 0 || index < 6
-    if (activeTab === 'Official Store')   return index % 2 === 0
-    return index >= 2
+  const filteredRecommendations = featured.filter((product) => {
+    return product.homepageTabs?.includes(activeTab)
   })
 
   return (
@@ -324,15 +358,18 @@ export default function Home() {
       <section className="border-b border-t border-[#e5e4e2] bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 divide-x divide-[#e5e4e2] lg:grid-cols-4">
-            {SERVICE_ITEMS.map(({ icon: Icon, title, sub }) => (
-              <div key={title} className="flex flex-col items-center gap-2.5 px-4 py-6 text-center sm:flex-row sm:text-left lg:px-8">
-                <div className="shrink-0"><Icon className="h-5 w-5 text-[#0a0a0a]" strokeWidth={1.5} /></div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0a0a0a]">{title}</p>
-                  <p className="mt-0.5 text-[11px] text-[#8a8a8a]">{sub}</p>
+            {SERVICE_ITEMS.map((item) => {
+              const Icon = item.icon
+              return (
+                <div key={item.title} className="flex flex-col items-center gap-2.5 px-4 py-6 text-center sm:flex-row sm:text-left lg:px-8">
+                  <div className="shrink-0"><Icon className="h-5 w-5 text-[#0a0a0a]" strokeWidth={1.5} /></div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0a0a0a]">{item.title}</p>
+                    <p className="mt-0.5 text-[11px] text-[#8a8a8a]">{item.sub}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
@@ -353,7 +390,7 @@ export default function Home() {
                 <Link key={cat.slug} to={`/category/${cat.slug}`} className="group flex min-w-[110px] flex-shrink-0 flex-col items-center gap-3 sm:min-w-[120px]">
                   <div className="relative h-[110px] w-[110px] overflow-hidden border border-[#e5e4e2] bg-[#f9f8f6] transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] sm:h-[120px] sm:w-[120px]">
                     {cat.image
-                      ? <img src={getImageUrl(cat.image)} alt={cat.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      ? <img src={getImageUrl(cat.image)} alt={cat.title} className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105" />
                       : <div className="flex h-full items-center justify-center text-xl font-black text-[#0a0a0a]">{cat.title?.charAt(0)}</div>}
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#0a0a0a] transition-colors group-hover:text-[#555]">
@@ -378,10 +415,14 @@ export default function Home() {
             <SectionHeader
               label={homepageContent.flashSaleSection.label}
               title={homepageContent.flashSaleSection.title || 'FEATURED PRODUCTS'}
-              linkTo="/products"
+              linkTo={homepageContent.flashSaleSection.link || '/products'}
+              linkText={homepageContent.flashSaleSection.buttonText || 'View all'}
             />
             <div className="mt-8">
-              <ProductCarousel products={featured.slice(0, 10)} onAddToCart={handleAddToCart} />
+              <ProductCarousel
+                products={(flashSaleProducts.length > 0 ? flashSaleProducts : featured).slice(0, 10)}
+                onAddToCart={handleAddToCart}
+              />
             </div>
           </div>
         </section>
@@ -392,7 +433,7 @@ export default function Home() {
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1400&q=80)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
         <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start gap-6 px-8 py-20 lg:flex-row lg:items-center lg:justify-between lg:px-16 lg:py-24">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/50">Limited Time Offer</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/50">{homepageContent.promoSection.badgeLabel || 'Limited Time Offer'}</p>
             <h2 className="mt-3 text-5xl font-black uppercase leading-[1.05] text-white lg:text-7xl">
               {homepageContent.promoSection.title || 'UP TO 50% OFF'}
             </h2>
@@ -415,9 +456,9 @@ export default function Home() {
             {/* Tabs */}
             <div className="flex flex-wrap gap-2">
               {recommendationTabs.map((tab) => (
-                <button key={tab} type="button" onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors ${activeTab === tab ? 'bg-[#0a0a0a] text-white' : 'border border-[#e5e4e2] bg-white text-[#3d3d3d] hover:border-[#0a0a0a]'}`}>
-                  {tab}
+                <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)}
+                  className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors ${activeTab === tab.key ? 'bg-[#0a0a0a] text-white' : 'border border-[#e5e4e2] bg-white text-[#3d3d3d] hover:border-[#0a0a0a]'}`}>
+                  {tab.label}
                 </button>
               ))}
             </div>
