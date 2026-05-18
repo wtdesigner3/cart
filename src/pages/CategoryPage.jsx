@@ -82,7 +82,7 @@ export default function CategoryPage() {
               className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
             >
               <div className="aspect-[4/3] overflow-hidden bg-slate-100">
-                <img src={getImageUrl(product.thumbnail)} alt={product.title} className="h-full w-full object-cover" />
+                <img src={getImageUrl(product.thumbnail)} alt={product.title} className="h-full w-full object-contain" />
               </div>
               <div className="space-y-2 p-5">
                 <p className="text-lg font-semibold text-slate-900">{product.title}</p>

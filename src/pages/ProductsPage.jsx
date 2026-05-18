@@ -213,7 +213,7 @@ export default function ProductsPage() {
                   className="group overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-indigo-200"
                 >
                   <div className="aspect-[4/3] overflow-hidden bg-slate-100 relative">
-                    <img src={getImageUrl(product.thumbnail)} alt={product.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-110" />
+                    <img src={getImageUrl(product.thumbnail)} alt={product.title} className="h-full w-full object-contain transition duration-300 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
                   <div className="space-y-2 p-4">
